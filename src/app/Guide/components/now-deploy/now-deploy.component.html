@@ -1,0 +1,73 @@
+<!-- Deploy to Now Guide -->
+<section class="section has-fadein">
+  <div class="container">
+
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Deploying to Now</h1>
+    <img src="assets/images/guide-headers/zeit_now.png" alt="Deploying to now" class="image image-shadow image-border image-center">
+    <hr class="blackHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><span><strong>Zeit Now</strong></span> is a company that build software and cloud products for developers and designers.  Most notably, they're the company behind Next.js, which is the server side rendering platform for React.  Their goal is to make cloud computing easy, universal, and accessible.  Now's platform is likely one of the easiest for app deployment.  All it takes to deploy your app to the cloud is by using the command <code>now</code>, no Git repository needed!  They offer multiple pricing tiers based on usage, including a free tier called OSS.  You can check out their pricing plans <a href="https://zeit.co/account/plan" target="_blank">here</a>.  In a nutshell, all deployments are final, and if you ever have to update a feature in your app, you simply deploy the app by using the <code>now</code> command and a new app and URL will appear instantly.  This guide explains the basic principles of deploying your app to Now.</p>
+          <span>
+            <strong>Resources:</strong>
+          </span>
+          <ul>
+            <li>
+              <a href="https://zeit.co/docs/getting-started/five-minute-guide-to-now" target="_blank">Five Minute Guide to Now</a> by
+              <em>Zeit Now</em> (last accessed 3/22/18)
+            </li>
+            <li>
+              <a href="https://zeit.co/docs/other/faq" target="_blank">Frequently Asked Questions</a> by
+              <em>Zeit Now</em> (last accessed 3/22/18)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Deploying to Now Title -->
+        <h2 class="title is-3 has-text-centered">Deploying to Now</h2>
+        <hr class="blackHR">
+        
+        <!-- Deploying to Now Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Install Now Desktop at Zeit Now's <a href="https://zeit.co/download" target="_blank">download page</a>.</li>
+            <li>Ensure all links in Angular services are changed from absolute links to relative links (example shown below)</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // book.service.ts
+                getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                  return this.http.get&lt;Book[]&gt;('http://localhost:3000/api/library/book');  // before
+                {{ '}' }}
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // book.service.ts
+                getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                  return this.http.get&lt;Book[]&gt;('api/library/book');  // after
+                {{ '}' }}
+              </pre>
+              <li>Ensure the correct scripts are loaded in <code>package.json</code>.  After installing npm packages, Now executes the <code>build</code> command, followed by the <code>start</code> command.  If aliases are needed, you could also use <code>now-build</code> or <code>now-start</code>.</li>
+                <pre class="prettyprint image-border image-shadow image-center">
+                    // package.json
+                    "scripts": {{ '{' }}
+                      "build": "ng build --prod && ng build --prod --app universal --output-hashing=none",
+                      "start": "node server.js"
+                     {{ '}' }},
+                </pre>
+              <li>Deploy your app by typing in <code>now</code> in the command line.</li>
+                <pre class="command-body">now</pre>
+                <span>The app will build and logs will be shown in your command line. If you are using the free tier, please keep in mind that your source code will also be public and easily accessible by adding <code>_src</code> to the end of the root route URL (eg. <code>https://www.example.com/_src</code>).  You have now successfully deployed the app!</span>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="black"></app-social-buttons>
+
+  </div>
+</section>

@@ -1,0 +1,167 @@
+<!-- SEO and Social Media Guide -->
+<section class="section has-fadein">
+  <div class="container">
+    
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">SEO and Social Media</h1>
+    <img src="assets/images/guide-headers/seo.png" alt="SEO and Social Media" class="image image-shadow image-border image-center">
+    <hr class="blueHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+        
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><strong>Search Engine Optimization (SEO)</strong> is important as search engines like Google and Bing drive most of the traffic to individual websites. SEO encompasses both the technical and creative elements required to improve rankings, drive traffic, and increase awareness in search engines bolstering user engagement.  Similarly, social networks such as Facebook and Twitter are major drivers are traffic to websites.  Angular Universal makes SEO easy by using Server-side rendering to ensure that all search engines get access to the application's content by displaying HTML markup that is easily read by web crawlers.  This guide explains how to optimize this Angular app using basic SEO principles.</p>
+          <span><strong>Resources:</strong></span>
+          <ul>
+            <li>
+              <a href="https://moz.com/blog/meta-data-templates-123" target="_blank">Must-Have Social Meta Tags for Twitter, Google+, Facebook and More</a> by <em>Cyrus Shepard</em> (11/7/13)
+            </li>
+            <li>
+              <a href="https://css-tricks.com/essential-meta-tags-social-media/" target="_blank">The Essential Meta Tags for Social Media</a> by <em>Adam Coti</em> (6/20/16)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Setting up Title and Meta Tags Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Title and Meta Tags</h2>
+        <hr class="blueHR">
+
+        <!-- Setting up Title and Meta Tags Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Set the <code>Title</code> and <code>Meta</code> classes as providers in <code>app.module.ts</code>.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // app.module.ts
+              import {{ '{' }} BrowserModule, Title, Meta {{ '}' }} from '@angular/platform-browser';
+              import {{ '{' }} NgModule {{ '}' }} from '@angular/core';
+              import {{ '{' }} AppComponent {{ '}' }} from './app.component';
+
+              @NgModule({{ '{' }}
+                declarations: [
+                  AppComponent
+                ],
+                imports: [
+                  BrowserModule.withServerTransition({{ '{' }} appId: 'serverApp' {{ '}' }}),
+                ],
+                providers: [
+                  Title,
+                  Meta
+                ],
+                bootstrap: [AppComponent]
+               {{ '}' }})
+              export class AppModule {{ '{' }} {{ '}' }}
+            </pre><br>
+            <li>Create an <code>seo.service.ts</code>.  Inside this service, a function <code>setMetaTags()</code> will set the title and meta tags.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // seo.service.ts
+              import {{ '{' }} Injectable {{ '}' }} from '@angular/core';
+              import {{ '{' }} Title, Meta {{ '}' }} from '@angular/platform-browser';
+
+              @Injectable()
+              export class SeoService {{ '{' }}
+
+                constructor(private title: Title, private meta: Meta) {{ '{' }} {{ '}' }}
+
+                // Set meta tags for each webpage
+                setMetaTags(title: string, description: string, ogType: string, ogUrl: string) {{ '{' }}
+
+                  // Set standard meta tags
+                  this.title.setTitle(title);
+                  this.meta.addTags([
+                    {{ '{' }} name: 'description', content: description {{ '}' }},
+                    {{ '{' }} name: 'twitter:card', value: 'summary' {{ '}' }},
+                    {{ '{' }} name: 'og:title', content: title {{ '}' }},
+                    {{ '{' }} name: 'og:type', content: ogType {{ '}' }},
+                    {{ '{' }} name: 'og:url', content: ogUrl {{ '}' }},
+                    {{ '{' }} name: 'og:image', content: 'assets/images/social.jpg' {{ '}' }},
+                    {{ '{' }} name: 'og:description', content: description {{ '}' }}], true
+                  );
+
+                {{ '}' }}
+              {{ '}' }}
+            </pre><br>
+            <li>Use dependency injection to deliver the <code>SEOService</code> to our <code>home.component.ts</code> and set our meta tags for this page.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // seo-socialmedia.component.ts
+              import {{ '{' }} Component, OnInit {{ '}' }} from '@angular/core';
+              import {{ '{' }} SeoService {{ '}' }} from '../../../Shared/services/seo.service';
+
+              @Component({{ '{' }}
+                selector: 'app-seo-socialmedia',
+                templateUrl: './seo-socialmedia.component.html',
+                styles: []
+               {{ '}' }})
+              export class HomeComponent implements OnInit {{ '{' }}
+
+                constructor(private seo: SeoService) {{ '{' }} {{ '}' }}
+
+                ngOnInit() {{ '{' }}
+                  this.seo.setMetaTags(
+                    'MEAN Stack | SEO and Social Media',
+                    'Guide to setting up Search Engine Optimization (SEO) and Social Media links with the MEAN stack full starter template',
+                    'article',
+                    'https://www.meanstacktemplate.com/guides/search-engine-optimization-and-social-media'
+                  );
+                {{ '}' }}
+
+              {{ '}' }}
+            </pre><br>
+            <li>This webpage is now SEO friendly!</li>
+            <img src="assets/images/ng-seo.png" alt="Social Media meta tags" class="image image-shadow image-center">
+          </ol>
+        </div>
+
+        <!-- Setting up ngx-sharebuttons Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Ngx-sharebuttons</h2>
+        <hr class="blueHR">
+
+        <!-- Setting up ngx-sharebuttons Content -->
+        <div class="content has-text-justified">
+          <span><a href="https://murhafsousli.github.io/ngx-sharebuttons" target="_blank">Ngx-sharebuttons</a> is a third-party npm package that helps us easily integrate social media buttons to share our content with popular providers such as Facebook, Twitter, and Google+.  Instructions on how this package was integrated into the MEAN stack full starter template are provided below.</span>
+          <ol>
+            <li>Install the package <code>@ngx-share/core</code></li>
+              <pre class="command-body">yarn install @ngx-share/core</pre>
+            <li>Import the <code>ShareModule</code> into <code>shared.module.ts</code></li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // shared.module.ts
+              import {{ '{' }} CommonModule {{ '}' }} from '@angular/common';
+              import {{ '{' }} HttpClientModule, HttpClientJsonpModule {{ '}' }} from '@angular/common/http';
+              import {{ '{' }} ShareModule {{ '}' }} from '@ngx-share/core';
+              import {{ '{' }} SeoService {{ '}' }} from './services/seo.service';
+
+              @NgModule({{ '{' }}
+                imports: [
+                  CommonModule,
+                  ShareModule.forRoot(),
+                  HttpClientModule,       // for share counts
+                  HttpClientJsonpModule,  // for linkedin and tumblr share counts
+                ],
+                providers: [
+                  SeoService
+                ],
+              {{ '}' }})
+              export class SharedModule {{ '{' }} {{ '}' }}
+            </pre><br>
+            <li>Integrate the <code>shareButton</code> directive into our templates (eg. Facebook button in <code>social-buttons.component.html</code>)</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // social-buttons.component.html
+              // Facebook Share Button
+              &lt;a class="button is-rounded facebook marginSide" shareButton="facebook"&gt;
+                &lt;div class="content has-text-light"&gt;
+                  &lt;span class="icon"&gt;&lt;i class="fab fa-facebook"&gt;&lt;/i&gt;&lt;/span&gt;&lt;span&gt;Share&lt;/span&gt;
+                &lt;/div&gt;
+              &lt;/a&gt;
+            </pre><br>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="blue"></app-social-buttons>
+
+  </div>
+</section>

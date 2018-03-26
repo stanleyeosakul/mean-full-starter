@@ -1,0 +1,58 @@
+<section class="section has-fadein">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-one-third is-offset-one-third">
+
+        <div class="box">
+
+          <!-- Title -->
+          <h1 class="title has-text-centered">Register New User</h1>
+
+          <!-- Error Notification -->
+          <div class="notification is-danger" *ngIf="errorToggle">
+            <button class="delete" (click)="errorToggle = !errorToggle"></button>
+            {{ errorMessage }}
+          </div>
+          <form>
+
+            <!-- Email Field -->
+            <div class="field">
+              <label>Email</label>
+              <div class="control has-icons-left">
+                <input name="email" type="email" class="input" [(ngModel)]="user.email">
+                <span class="icon is-small is-left"><i class="fas fa-envelope"></i></span>
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="field">
+              <label>Password</label>
+              <div class="control has-icons-left">
+                <input name="password" type="password" class="input" [(ngModel)]="user.password">
+                <span class="icon is-small is-left"><i class="fas fa-lock"></i></span>
+              </div>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="field">
+              <label>Confirm Password</label>
+              <div class="control has-icons-left">
+                <input name="confirmPassword" type="password" class="input" [(ngModel)]="user.confirmPassword">
+                <span class="icon is-small is-left"><i class="fas fa-lock"></i></span>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="field">
+              <div class="control has-text-right">
+                <button class="button is-link is-outlined" (click)="register()">Register</button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

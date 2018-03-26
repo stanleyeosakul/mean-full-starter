@@ -1,0 +1,171 @@
+<!-- Deploy to Now Guide -->
+<section class="section has-fadein">
+  <div class="container">
+
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Using MongoDB Atlas</h1>
+    <img src="assets/images/guide-headers/mongo.png" alt="Using MongoDB Atlas" class="image image-shadow image-border image-center">
+    <hr class="greenHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><span><strong>MongoDB Atlas</strong></span> is a fully managed database as a service (<em>DaaS</em>) that offers ease of deployment, operation, and scalability.  It's engineered and run by the same team that built the database leaving database management, setup and configuration, software patching, monitoring, backups, and handling a reliable, distributed database cluster to the experts.  Your data is easily browsable using a graphical user interface with MongoDB Compass Community and of course offers real-time performance metrics.  They offer multiple pricing tiers based on storage size, including a free tier called M0, which offers 512MB of storage with shared RAM.  You can check out their pricing plans <a href="https://www.mongodb.com/cloud/atlas/pricing" target="_blank">here</a>.  This guide explains how to connect to your MongoDB Atlas database with NodeJS using the Mongoose ODM and how Angular connects to your NodeJS API endpoints to access the database.</p>
+          <span>
+            <strong>Resources:</strong>
+          </span>
+          <ul>
+            <li>
+              <a href="https://zeit.co/docs/getting-started/five-minute-guide-to-now" target="_blank">MongoDB Atlas: Database as a Service</a> by
+              <em>MongoDB</em> (last accessed 3/22/18)
+            </li>
+            <li>
+              <a href="https://www.mongodb.com/cloud/atlas/faq" target="_blank">MongoDB Atlas FAQs</a> by
+              <em>MongoDB</em> (last accessed 3/22/18)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Setting up MongoDB Title -->
+        <h2 class="title is-3 has-text-centered">Setting up MongoDB Atlas with NodeJS</h2>
+        <hr class="greenHR">
+        
+        <!-- Setting up MongoDB Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Start a database and configure a user with MongoDB Atlas</li>
+              <ol>
+                <li>Create an account with MongoDB</li>
+                <li>Create a new organization</li>
+                <li>Create a new project within this organization</li>
+                <li>Create a new cluser within this project.  The M0 tier is a free tier that can be selected.  Please note that all M0 instances launch with MongoDB v3.4.13</li>
+                <li>You should now be in the Overview tab.  Select the Security Tab</li>
+                <li>Click <em>Add New User</em></li>
+                <li>Enter a username and password for your user.  Please note that once you create this user, you will no longer be able to access the user's password so make sure to write it down or save it somewhere.  You can now use this username/password combination to connect to the MongoDB application using the URI connection string</li>
+              </ol>
+            <li>In the overview tab, click <em>Connect</em></li>
+            <li>Click <em>Connect to your Application</em></li>
+            <li>Follow the instructions to copy the URI connection string</li>
+            <li>Place the URI connection string in <code>keys.js</code>.  This file will then be imported into our <code>db.js</code> file, which is then imported into our <code>server.js</code> file.  We will use the Mongoose ODM to perform this task.  <strong>When building for production, it is highly recommended to put sensitive information such as API keys into environment variables</strong>.  Please check the documentation of your preferred platform provider for instructions on how to do this when deploying your application.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // keys.js
+              module.exports = {{ '{' }}
+                mongoDB: {{ '{' }}
+                  URI: process.env.MONGOURI || &lt;your-mongoDB-URI-goes-here&gt;
+                {{ '}' }},
+              {{ '}' }}
+            </pre>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // db.js
+              const mongoose = require('mongoose');
+              const keys = require('./keys');
+              mongoose.connect(keys.mongoDB.URI)
+                  .then(() => console.log('MongoDB Connected'))
+                  .catch(err => console.log(err));
+            </pre>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // server.js
+              require('./node_src/config/db');
+            </pre>
+            <li>MongoDB Atlas setup is complete!</li>
+          </ol>
+        </div>
+        
+        <!-- Setting up Books API - Server Title -->
+        <h2 class="title is-3 has-text-centered">Setting up the Books API with NodeJS</h2>
+        <hr class="greenHR">
+        
+        <!-- Setting up Books API - Server Content -->
+        <div class="content has-text-left">
+          <span>Now that we have our database set up, we need to set up API endpoints for our server to communicate with the database.  In this example, we use books as the object to perform create, read, update, and delete (CRUD) operations in our own RESTful API.</span>
+          <pre class="prettyprint image-border image-shadow image-center">
+            // library.js
+            const router = require('express').Router();
+            const Book = require('../models/Book.js');
+  
+            // GET ALL BOOKS 
+            router.get('/book', (req, res, next) => {{ '{' }}
+                Book.find((err, products) => (err) ? next(err) : res.json(products));
+              {{ '}' }});
+  
+            // GET A BOOK
+            router.get('/book/:id', (req, res, next) => {{ '{' }}
+                Book.findById(req.params.id, (err, post) => (err) ? next(err) : res.json(post));
+              {{ '}' }});
+  
+            // SAVE A BOOK
+            router.post('/book', (req, res, next) => {{ '{' }}
+                Book.create(req.body, (err, post) => (err) ? next(err) : res.json(post));
+              {{ '}' }});
+  
+            // UPDATE BOOK
+            router.put('/book/:id', (req, res, next) => {{ '{' }}
+                Book.findByIdAndUpdate(req.params.id, req.body, (err, post) => (err) ? next(err) : res.json(post));
+              {{ '}' }});
+  
+            // DELETE A BOOK
+            router.delete('/book/:id', (req, res, next) => {{ '{' }}
+                Book.findByIdAndRemove(req.params.id, req.body, (err, post) => (err) ? next(err) : res.json(post));
+              {{ '}' }});
+  
+            module.exports = router;
+          </pre><br>
+        </div>
+
+        <!-- Setting up Books API - Client Title -->
+        <h2 class="title is-3 has-text-centered">Setting up the Books API with Angular</h2>
+        <hr class="greenHR">
+        
+        <!-- Setting up Books API - Client Content -->
+        <div class="content has-text-left">
+          <span>Once the our RESTful API is set up on the server, we need to connect to the API endpoints using the client.  In this example, we use an Angular service to connect to the database through our API.</span>
+          <pre class="prettyprint image-border image-shadow image-center">
+            // book.service.ts
+            import {{ '{' }} Injectable {{ '}' }} from '@angular/core';
+            import {{ '{' }} Observable {{ '}' }} from 'rxjs/Observable';
+            import {{ '{' }} HttpClient {{ '}' }} from '@angular/common/http';
+            import {{ '{' }} Book {{ '}' }} from '../models/Book';
+
+            @Injectable()
+            export class BookService {{ '{' }}
+
+              constructor(private http: HttpClient) {{ '{' }} {{ '}' }}
+
+              // GET ALL BOOKS
+              getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                return this.http.get&lt;Book[]&gt;('http://localhost:3000/api/library/book');
+              {{ '}' }}
+
+              // GET A BOOK
+              getBook(id: string): Observable&lt;Book&gt; {{ '{' }}
+                return this.http.get&lt;Book&gt;(`http://localhost:3000/api/library/book/${{ '{' }}id{{ '}' }}`);
+              {{ '}' }}
+
+              // SAVE A BOOK
+              insertBook(book: Book): Observable&lt;Book&gt; {{ '{' }}
+                return this.http.post&lt;Book&gt;('http://localhost:3000/api/library/book', book);
+              {{ '}' }}
+
+              // UPDATE A BOOK
+              updateBook(id: string, book: Book): Observable&lt;void&gt; {{ '{' }}
+                return this.http.put&lt;void&gt;(`http://localhost:3000/api/library/book/${{ '{' }}id{{ '}' }}`, book);
+              {{ '}' }}
+
+              // DELETE A BOOK
+              deleteBook(id: string): Observable&lt;void&gt; {{ '{' }}
+                return this.http.delete&lt;void>(`http://localhost:3000/api/library/book/${{ '{' }}id{{ '}' }}`);
+              {{ '}' }}
+          </pre>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="green"></app-social-buttons>
+
+  </div>
+</section>

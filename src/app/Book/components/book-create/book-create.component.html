@@ -1,0 +1,70 @@
+<section class="section has-fadein">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-half is-offset-one-quarter">
+
+        <div class="box">
+          <h1 class="title has-text-centered">Add New Book</h1>
+          <div class="notification is-danger" *ngIf="errorToggle">
+            <button class="delete" (click)="errorToggle = !errorToggle"></button>
+            {{ errorMessage }}
+          </div>
+          <form>
+
+            <!-- Title Field -->
+            <div class="field">
+              <label>Title</label>
+              <div class="control has-icons-left">
+                <input 
+                  name="title"
+                  type="text"
+                  class="input"
+                  [(ngModel)]="book.title"
+                  placeholder="Harry Potter And The Goblet Of Fire">
+                <span class="icon is-small is-left"><i class="fas fa-book"></i></span>
+              </div>
+            </div>
+
+            <!-- Author Field -->
+            <div class="field">
+              <label>Author</label>
+              <div class="control has-icons-left">
+                <input
+                  name="author" 
+                  type="text"
+                  class="input"
+                  [(ngModel)]="book.author"
+                  placeholder="J.K. Rowling">
+                  <span class="icon is-small is-left"><i class="fas fa-pencil-alt"></i></span>
+              </div>
+            </div>
+
+            <!-- Description Field -->
+            <div class="field">
+              <div class="control">
+                <label>Description</label>
+                <textarea 
+                  name="description"
+                  class="textarea" 
+                  [(ngModel)]="book.description"
+                  placeholder="The fourth Harry Potter adventure, centering on an inter-school competition, boasts details that are as ingenious and originalas ever. A spectacular climax will leave readers breathless."></textarea>           
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="field">
+              <div class="control has-text-right">
+                <button class="button is-link is-outlined" (click)="addBook()">Submit</button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Back Button -->
+        <app-books-back></app-books-back>
+
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,14 @@
+<!-- Donate button - activates Stripe Checkout -->
+<a class="button is-black is-inverted" (click)="checkout()">
+  <span class="icon"><i class="fab fa-cc-stripe"></i></span>
+  <span>Donate</span>
+</a>
+
+<!-- Show payment result to user -->
+<div class="pageloader" [ngClass]="{
+  'is-active' : showResultScreen,
+  'is-success' : paymentResult,
+  'is-danger' : !paymentResult
+}">
+  <span class="title">{{ message }}</span>
+</div>

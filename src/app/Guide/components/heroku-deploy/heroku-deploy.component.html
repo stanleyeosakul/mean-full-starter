@@ -1,0 +1,77 @@
+<!-- SEO and Social Media Guide -->
+<section class="section has-fadein">
+  <div class="container">
+    
+    <!-- Heroku Deploy Title -->
+    <h1 class="title is-2 has-text-centered">Deploying the app on Heroku</h1>
+    <img src="assets/images/guide-headers/heroku.png" alt="Heroku Deploy" class="image image-shadow image-border image-center">
+    <hr class="purpleHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+        
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><span><strong>Deploying on Heroku</strong></span> is another great way to share your app with others.  Heroku is a cloud-based, platform-as-a-service (<em>PaaS</em>) based on a managed container system for building, running, and managing modern apps. Heroku’s platform, tools, integrated services, and ecosystem are meticulously designed to support the best possible developer experience.  Their platform is elegant, flexible, and easy to use.  Heroku uses Git to push your code to the cloud with very minimal downtime when adding new features.  They offer a free tier consisting of 1,000 free dyno hours and their services are popular with both beginners and advanced coders alike.  This guide explains the basic principles of deploying your app to Heroku.</p>
+          <span><strong>Resources:</strong></span>
+          <ul>
+            <li>
+              <a href="https://devcenter.heroku.com/articles/git" target="_blank">Deploying with Git</a> by <em>Heroku Dev Center</em> (last accessed 3/22/18)
+            </li>
+            <li>
+              <a href="https://devcenter.heroku.com/articles/nodejs-support" target="_blank">Heroku Node.js Support</a> by <em>Heroku Dev Center</em> (last accessed 3/22/18)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Deploying to Heroku Title -->
+        <h2 class="title is-3 has-text-centered">Deploying to Heroku</h2>
+        <hr class="purpleHR">
+        
+        <!-- Deploying to Heroku Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Install Heroku CLI from their <a href="https://devcenter.heroku.com/articles/getting-started-with-nodejs#set-up" target="_blank">setup page</a>.</li>
+            <li>Ensure all links in Angular services are changed from absolute links to relative links (example shown below)</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // book.service.ts
+                getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                  return this.http.get&lt;Book[]&gt;('http://localhost:3000/api/library/book');  // before
+                {{ '}' }}
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // book.service.ts
+                getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                  return this.http.get&lt;Book[]&gt;('api/library/book');  // after
+                {{ '}' }}
+              </pre>
+              <li>Ensure the correct scripts are loaded in <code>package.json</code>.  After installing npm packages, Heroku executes the <code>postinstall</code> command, followed by the <code>start</code> command.  If aliases are needed, you could also use <code>heroku-postbuild</code>.  We have used this in favor of the <code>postinstall</code> command as <code>postinstall</code> activates after every <code>yarn install</code> and <code>yarn add</code> command.</li>
+                <pre class="prettyprint image-border image-shadow image-center">
+                    // package.json
+                    "scripts": {{ '{' }}
+                      "heroku-postbuild": "ng build --prod && ng build --prod --app universal --output-hashing=none",
+                      "start": "node server.js"
+                     {{ '}' }},
+                </pre>
+              <li>Create a new project using the CLI</li>
+                <pre class="command-body">heroku create</pre>
+              <li>If not done so already, initialize your app with Git</li>
+                <pre class="command-body">git init</pre>
+              <li>While in your repository's root directory <code>/</code>, track all files</li>
+                <pre class="command-body">git add .</pre>
+              <li>Commit all new files and changes using <code>git commit</code></li>
+                <pre class="command-body">git commit -m 'Initial Commit'</pre>
+              <li>Deploy your app using the following command</li>
+                <pre class="command-body">git push heroku master</pre>
+                <span>The app will build and logs will be shown in your command line.</span>  You have now successfully deployed the app!
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="purple"></app-social-buttons>
+
+  </div>
+</section>

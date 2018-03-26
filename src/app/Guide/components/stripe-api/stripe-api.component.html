@@ -1,0 +1,251 @@
+<!-- Stripe Payment API Integration Guide -->
+<section class="section has-fadein">
+  <div class="container">
+    
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Stripe Payment API Integration</h1>
+    <img src="assets/images/guide-headers/stripe-header.png" alt="Stripe Payment API" class="image image-shadow image-border image-center">
+    <hr class="blueHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+        
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><span><strong>Stripe</strong></span> is one of the best software platforms for internet businesses and can be regarded as the new standard in online payments.  They put developers first with extensive documentation on scalable, flexible, and elegant integrations into their API.  It's easy to get started with Stripe with many layers of customization and a beautiful dashboard to monitor customers and payments.  In this template, we use Checkout, which is Stripe's embedded payment form, but for further customization, Stripe Elements can be used, which is a set of pre-built UI components that can be integrated into your own custom HTML payment forms.  This guide explains how to get started with Stripe Checkout, how to use a token to charge Stripe from our NodeJS server, and how to send this token, which contains customer information, from the Angular client.</p>
+          <p>In the template, Stripe has been set up in test mode, which is very helpful for debugging and making sure everything is just right before the payment integration moves into production.  More information on testing can be found <a href="https://stripe.com/docs/testing#cards" target="_blank">here</a>.  <strong>If you would like to test out the Stripe Checkout system, please enter <em>4242 4242 4242 4242</em> as the credit card number in addition to any e-mail address, expiration date, or CVC code.</strong></p>
+          <span><strong>Resources:</strong></span>
+          <ul>
+            <li>
+              <a href="https://github.com/stripe/stripe-node" target="_blank">Node.js library for the Stripe API</a> by <em>Stripe</em> (last accessed on 3/22/18)
+            </li>
+            <li>
+              <a href="https://stripe.com/docs/quickstart" target="_blank">Card Payments Quickstart</a> by <em>Stripe docs</em> (last accessed on 3/22/18)
+            </li>
+            <li>
+              <a href="https://stripe.com/docs/checkout" target="_blank">Checkout Reference</a> by <em>Stripe docs</em> (last accessed on 3/22/18)
+            </li>
+            <li>
+              <a href="https://stripe.com/docs/api" target="_blank">Stripe API Reference</a> by <em>Stripe api</em> (last accessed on 3/22/18)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Getting your Stripe API Keys Title -->
+        <h2 class="title is-3 has-text-centered">Getting your Stripe API Keys</h2>
+        <hr class="blueHR">
+
+        <!-- Getting your Stripe API Keys Content -->
+        <div class="content has-text-justified">
+          <span>To begin, we will need to create an account with Stripe to get our API keys.</span>
+          <ol>
+            <li>Create a free account with Stripe</li>
+            <li>Click <em>New Account</em>.  You will directed to your new account's dashboard.</li>
+            <li>Click <em>Developers</em> and then <em>API keys</em>.  There are two keys, a <em>Publishable key</em> for use on the client (Angular), and a <em>Secret key</em> for use on the server (NodeJS).</li>
+            <li>Place the <em>Publishable key</em> in <code>environment.ts</code> and <code>environment.prod.ts</code> in <code>src/app/environments/</code>, and place the <em>Secret key</em> in <code>node_src/config/keys.js</code>.  <strong>When building for production, it is highly recommended to put sensitive information such as API keys into environment variables</strong>.  Please check the documentation of your preferred platform provider for instructions on how to do this when deploying your application.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // environment.ts
+                export const environment = {{ '{' }}
+                  production: false,
+                  stripeKey: &lt;your-stripe-publishable-api-key-goes-here&gt;
+                {{ '}' }};
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // environment.prod.ts
+                export const environment = {{ '{' }}
+                  production: true,
+                  stripeKey: &lt;your-stripe-publishable-api-key-goes-here&gt;
+                {{ '}' }};
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // keys.js
+                module.exports = {{ '{' }}
+                  stripe: {{ '{' }}
+                    apiKey: process.env.STRIPEKEY || &lt;your-stripe-secret-api-key-goes-here&gt;
+                  {{ '}' }}
+                {{ '}' }};
+              </pre>
+            <li>The Stripe API Key setup is complete!</li>
+          </ol>
+        </div>
+
+        <!-- Setting up Stripe on NodeJS Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Stripe on NodeJS</h2>
+        <hr class="blueHR">
+
+        <!-- Setting up Stripe on NodeJS Content -->
+        <div class="content has-text-justified">
+          <span>We need to create a route to accept information sent from the client.  We can then use this information to accept the payment using Stripe.</span>
+          <ol>
+            <li>Install <code>stripe</code> from <code>npm</code></li>
+              <pre class="command-body">yarn install stripe</pre>
+            <li>Create the POST route to accept payments from the client</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // payment.js
+                // Import dependencies
+                const router = require('express').Router();
+                const keys = require('../config/keys');
+                const stripe = require('stripe')(keys.stripe.apiKey);
+    
+                // Stripe API
+                router.post('/charge', (req, res, next) => {{ '{' }}
+    
+                  // Stripe token from the client
+                  const stripeToken = req.body.stripeToken;
+    
+                  // Multiply charge by 100 (Stripe thinks a value of 1 is equal to $0.01)
+                  const chargeAmount = Math.round(req.body.amount * 100);
+    
+                  // Create a Stripe customer
+                  stripe.customers.create()
+    
+                    // Create a bank account for the customer
+                    .then(function(customer) {{ '{' }}
+                      return stripe.customers.createSource(customer.id, {{ '{' }}
+                        source: stripeToken.id
+                      {{ '}' }});
+                    {{ '}' }})
+    
+                    // Create a charge object
+                    .then(function(source) {{ '{' }}
+                      return stripe.charges.create({{ '{' }}
+                        amount: chargeAmount,
+                        currency: 'usd',
+                        customer: source.customer
+                      {{ '}' }});
+                    {{ '}' }})
+    
+                    // Return a message to the user that the charge was successful
+                    .then(function(charge) {{ '{' }}
+                      res.json({{ '{' }} success: true, message: 'Payment successful!' {{ '}' }});
+                    {{ '}' }})
+    
+                    // Return an error message if there was an error
+                    .catch(function(err) {{ '{' }}
+                      res.json({{ '{' }} success: false, message: 'An error occurred.  Charge not completed.' {{ '}' }});
+                    {{ '}' }});
+                {{ '}' }});
+    
+                module.exports = router;
+              </pre>
+            <li>Server-side setup of the Stripe API is now complete!</li>
+          </ol>
+        </div>
+
+        <!--  Setting up Stripe on Angular Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Stripe on Angular</h2>
+        <hr class="blueHR">
+
+        <!-- Setting up Stripe on Angular Content -->
+        <div class="content has-text-justified">
+          <span>Now that our payment route is set up, we can proceed building the component that will contain our Stripe Checkout form.  This form will contain a token that we send to the server for further processing.</span>
+          <ol>
+            <li>Import the Stripe Checkout <code>&lt;script&gt;</code> tag into the header tag of <code>index.html</code></li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // index.html
+                &lt;head&gt;
+                  ...
+                  &lt;script src="https://checkout.stripe.com/checkout.js"&gt;&lt;/script&gt;
+                  &lt;link rel="icon" type="image/x-icon" href="favicon.ico"&gt;
+                &lt;/head&gt;
+              </pre>
+            <li>Declare the <code>StripeCheckout</code> variable in <code>typings.d.ts</code>.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // typings.d.ts
+                // SystemJS module definition
+                declare var module: NodeModule;
+                interface NodeModule {{ '{' }}
+                  id: string;
+                {{ '}' }}
+
+                // Stripe API
+                declare var StripeCheckout: any;
+              </pre>
+            <li>Create the <code>stripe.service</code></li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // stripe.service.ts
+                import {{ '{' }} Injectable {{ '}' }} from '@angular/core';
+                import {{ '{' }} HttpClient {{ '}' }} from '@angular/common/http';
+
+                @Injectable()
+                export class StripeService {{ '{' }}
+
+                  constructor(private http: HttpClient) {{ '{' }} {{ '}' }}
+
+                  // Send Stripe token to server in the header
+                  sendToken(chargeAmount: number, token: string) {{ '{' }}
+                    return this.http.post('http://localhost:3000/api/payment/charge', 
+                      {{ '{' }} amount: chargeAmount, stripeToken: token {{ '}' }});
+                  {{ '}' }}
+
+                {{ '}' }}
+              </pre>
+            <li>Create the <code>stripe-checkout.component</code></li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // stripe-checkout.component.html
+                // Donate button - activates Stripe Checkout
+                &lt;a class="button is-black is-inverted" (click)="checkout()"&gt;
+                  &lt;span class="icon">&lt;i class="fab fa-cc-stripe"&gt;&lt;/i&gt;&lt;/span&gt;
+                  &lt;span&gt;Donate&lt;/span&gt;
+                &lt;/a&gt;
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // stripe-checkout.component.ts
+                import {{ '{' }} Component, OnInit {{ '}' }} from '@angular/core';
+                import {{ '{' }} environment {{ '}' }} from '../../../../environments/environment';
+                import {{ '{' }} StripeService {{ '}' }} from '../../services/stripe.service';
+
+                @Component({{ '{' }}
+                  selector: 'app-stripe-checkout',
+                  templateUrl: './stripe-checkout.component.html',
+                  styles: []
+                {{ '}' }})
+                export class StripeCheckoutComponent implements OnInit {{ '{' }}
+
+                  // Stripe handler
+                  handler: any;
+
+                  // Amount of money to charge (in USD)
+                  total = 5;
+
+                  constructor(private stripe: StripeService) {{ '{' }} {{ '}' }}
+
+                  ngOnInit() {{ '{' }}
+
+                    // Configure Stripe Checkout
+                    this.handler = StripeCheckout.configure({{ '{' }}
+                      key: environment.stripeKey,
+                      image: 'https://stripe.com/img/documentation/checkout/marketplace.png',
+                      locale: 'auto',
+                      token: (stripeToken) => {{ '{' }}
+                        this.stripe.sendToken(this.total, stripeToken).subscribe((data: any) => console.log(data.message));
+                      {{ '}' }}
+                    {{ '}' }});
+
+                  {{ '}' }}
+
+                  checkout() {{ '{' }}
+
+                    // Open Checkout with additional customizations
+                    this.handler.open({{ '{' }}
+                      name: 'MEANkit.io',
+                      description: 'See guide to test system',
+                      amount: this.total * 100,
+                    {{ '}' }});
+
+                  {{ '}' }}
+
+                {{ '}' }}
+              </pre>
+            <li>Client-side setup of the Stripe API is now complete!</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="blue"></app-social-buttons>
+      
+  </div>
+</section>

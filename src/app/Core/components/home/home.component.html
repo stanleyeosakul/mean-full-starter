@@ -1,0 +1,112 @@
+<!-- MEAN Stack Full Starter Features -->
+<section class="section has-fadein">
+  <div class="container">
+    <div class="columns is-multiline is-mobile bodyPadding">
+
+      <!-- Introductory Information -->
+      <div class="column is-10 is-offset-1 intro">
+        <h1 class="title is-2">A Modern Guide for the MEAN Stack</h1><br>
+        <div class="subtitle has-text-justified">
+          <p>Welcome to <strong>MEANkit.io</strong>, the official website of the <strong>MEAN Stack Full Starter Template</strong>.  MEAN is a full-stack development toolkit using the Javascript-based technologies MongoDB, Express, Angular, and Node.js.  This template is one of the best resources for your next web development project.  Many of the necessary features needed for today's modern web apps are directly built-in for immediate use, including authentication with JSON Web Tokens, cloud database service with MongoDB Atlas, and cloud storage with Amazon S3.</p><br>
+
+          <p>The Angular client was coded using best-practices with modular architecture, dependency injection, and lazy loading and was designed using Bulma, an open source CSS-only framework based on Flexbox.  The <span class="content has-text-weight-semibold"><a routerLink="guides/stripe-payment-api-integration">Stripe API</a></span> has also been integrated into the app and serves as a starting point for the further development of a user payment system.  In addition to all of these features, the website takes advantage of <span class="content has-text-weight-semibold"><a routerLink="guides/angular-universal-setup">Angular Universal</a></span> for <span class="content has-text-weight-semibold"><a routerLink="guides/search-engine-optimization-and-social-media">SEO and social media</a></span> compatibility.</p><br>
+          
+          <p>Detailed explanations are provided as a guide to help you integrate these features into your own projects.  Feel free to explore this website to get a feel for what went in to making it and if you're extra curious, the source code can be downloaded from the GitHub link on the top left of the screen.  So what are you waiting for? Let's get started building the next great app today!</p>
+        </div>
+      </div>
+      
+      <!-- Getting your Stripe API Keys Title -->
+      <div class="column is-full">
+        <h2 class="title is-2 has-text-centered">Setup Guides</h2>
+        <hr class="blackHR">
+      </div>
+
+      <!-- JWT Authentication -->
+      <div class="column is-12-mobile is-12-tablet is-6-desktop is-4-widescreen">
+        <div class="card">
+          <img src="assets/images/logos/jwt.png" class="image" alt="JSON Web Token">
+          <div class="card-content">
+            <div class="content has-text-centered">
+              <h2 class="subtitle"><a routerLink="guides/authentication-with-jwt">Authentication with JWT</a></h2>
+              <p class="has-text-justified">JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between two parties as a JSON object. Authentication is the most common use scenario. Each request after login will include the JWT for further web resource access.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MongoDB Atlas -->
+      <div class="column is-12-mobile is-12-tablet is-6-desktop is-4-widescreen">
+        <div class="card">
+          <img class="image mongoStyle" src="assets/images/logos/mongoDB.png" alt="MongoDB Atlas">
+          <div class="card-content">
+            <div class="content has-text-centered">
+              <h2 class="subtitle"><a routerLink="guides/cloud-database-service-with-mongodb-atlas">MongoDB Atlas</a></h2>
+              <p class="has-text-justified">MongoDB Atlas is a cloud database service that stores data in flexible, JSON-like documents, and makes it easy to deploy, operate, and scale MongoDB in the cloud by automating time-consuming administration tasks such as database setup, security implementation, scaling, patching, and more.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amazon S3 -->
+      <div class="column is-12-mobile is-12-tablet is-6-desktop is-4-widescreen">
+        <div class="card">
+          <img class="image awsS3Style centerImg" src="assets/images/logos/aws-s3.png" width="150" alt="AWS S3">
+          <div class="card-content">
+            <div class="content has-text-centered">
+              <h2 class="subtitle"><a routerLink="guides/cloud-storage-with-amazon-s3">Amazon S3 Cloud Storage</a></h2>
+              <p class="has-text-justified">Amazon S3 Storage is a platform to easily and securely collect and store data on a massive scale.  Its features allow users to take a data-driven approach to storage optimization, compliance, and management efficiency. These features work together to help improve workload performance and storage costs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deployment -->
+      <div class="column">
+        <div class="card">
+          <div class="card-content">
+
+            <!-- Title -->
+            <div class="content has-text-centered">
+              <h1 class="title is-2">Deploying the App using Cloud Services</h1>
+              <p class="has-text-justified">Once the app has been completed, it needs to be deployed to the internet to be enjoyed by all!  Fortunately, there are many platform-as-a-service <em>(PaaS)</em> providers who make deployment easier than ever before!  Guides to deploy this MEAN stack web application are provided below for three popular hosting providers: Heroku, Amazon Web Services (AWS), and Zeit Now.  Each service has their own strengths and weaknesses so the choice is up to you!</p>
+            </div>
+
+            <div class="columns">
+
+              <!-- Heroku -->
+              <div class="column has-text-centered">
+                <a routerLink="guides/deploy-with-heroku">
+                  <img class="image herokuStyle centerImg" src="assets/images/logos/heroku.png" width="300px" alt="Heroku">
+                  <p class="has-text-centered marginTopHeroku">Read More</p>
+                </a>
+              </div>
+
+              <!-- AWS -->
+              <div class="column">
+                <a routerLink="guides/deploy-with-aws">
+                  <img class="image awsStyle centerImg" src="assets/images/logos/aws.png" width="215px" alt="AWS">
+                  <p class="has-text-centered">Read More</p>
+                </a>
+              </div>
+
+              <!-- Now -->
+              <div class="column">
+                <a routerLink="guides/deploy-with-now">
+                  <img class="image image-shadow image-border centerImg" width="225px" src="assets/images/logos/now.png" alt="Zeit now">
+                  <p class="has-text-centered marginTopNow">Read More</p>
+                </a>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Social Media Buttons -->
+    <app-social-buttons color="black"></app-social-buttons>
+
+  </div>
+</section>

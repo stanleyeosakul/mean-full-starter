@@ -1,0 +1,115 @@
+<!-- Deploying to AWS Guide -->
+<section class="section has-fadein">
+  <div class="container">
+
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Deploying to Amazon Web Services</h1>
+    <img src="assets/images/guide-headers/aws-logo-header.png" alt="Amazon Web Services" class="image image-shadow image-border image-center">
+    <hr class="orangeHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p>
+            <strong>Amazon Web Services (AWS)</strong> is a secure cloud services platform, offering compute power, database storage, content delivery and other functionality to help web applications scale and grow.  Their platform is massive and covers virtually every use case of deployment on the web, whether it be for a simple static website, cloud storage, full-stack applications, databases, and much, much more.  It can be confusing to start working with AWS; however, for full-stack applications such as our MEAN Stack full starter template, we can use <strong>Elastic Beanstalk</strong>.  This is an easy-to-use service for deploying and scaling web applications and services developed with many langues including, Java, .NET, PHP, Node.js, Python, Ruby, Go, and Docker on familiar servers such as Apache, Nginx, Passenger, and IIS. Simply upload your code and Elastic Beanstalk automatically handles the deployment, from capacity provisioning, load balancing, auto-scaling to application health monitoring. At the same time, you retain full control over the AWS resources powering your application and can access the underlying resources at any time.</p>
+          <span>
+            <strong>Resources:</strong>
+          </span>
+          <ul>
+            <li>
+              <a href="https://medium.freecodecamp.org/how-to-deploy-a-node-js-app-to-the-aws-elastic-beanstalk-f150899ed977" target="_blank">How to deploy a Node.js app to the AWS Elastic Beanstalk</a> by
+              <em>Jared Nutt</em> (2/16/18)
+            </li>
+            <li>
+              <a href="https://medium.freecodecamp.org/deploying-a-production-node-express-mongo-app-to-aws-a-reflection-8982894289c6" target="_blank">Deploying a production Node/Express Mongo App to AWS — A Reflection</a> by
+              <em>Jared Nutt</em> (2/25/18)
+            </li>
+            <li>
+              <a href="https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create_deploy_nodejs_express.html" target="_blank">Deploying an Express Application to Elastic Beanstalk</a> by <em>AWS Elastic Beanstalk</em> (last accessed 3/22/2018)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Creating an Elastic Beanstalk Application Title -->
+        <h2 class="title is-3 has-text-centered">Creating an Elastic Beanstalk Application</h2>
+        <hr class="orangeHR">
+
+        <!-- Creating an Elastic Beanstalk Application Content -->
+        <div class="content has-text-justified">
+          <span>Before starting with Amazon Web Services, please be aware that despite having incredibly powerful services, it comes at a cost.  Fortunately, after providing credit card information, you can sign up for their 1-year free tier option, which is helpful to experiment with their services at a reduced cost.  They have a nice <a href="https://calculator.s3.amazonaws.com/index.html#key=calc-BeanstalkDefault-140324" target="_blank">Simple Monthly Calculator</a> that you can check to see how much a typical <strong>Elastic Beanstalk</strong> application would cost.  After the free tier is over, you can sign up for various 1-year and 3-year plans to help further cut costs.</span>
+          <ol>
+            <li>Create an account on Amazon Web Services (AWS)</li>
+            <li>Create an Elastic Beanstalk Application</li>
+              <ol>
+                <li>Once in the dashboard, click <em>Create new application</em></li>
+                <li>On Application Info, enter a name for your application</li>
+                <li>On New Environment, click <em>Create web server</em></li>
+                <li>On Environment Type, set your predefined configuration to Node.js.  The default environment type is <em>Load balancing, auto scaling</em> which will be free if you are on the free-tier option.  This can be set to single instance if you expect your application to have low traffic in order to furter reduce costs.</li>
+                <li>On Application Version, set the application version to <em>Sample application</em>.  This is so we can initially test our URL after our EC2 instance is started per Elastic Beanstalk.  We will upload and deploy our app in the next section.</li>
+                <li>Keep Environment Info and Additional Resources the same, unless you want to customize your environment name/URL</li>
+                <li>On Configuration Details, ensure you have the <strong>t2.micro</strong> instance type selected as this is part of the free tier.  You can change instance types later if traffic to your web app grows.</li>
+                <li>Skip through Environment Tags and Permissions, unless you want to set your own customization</li>
+                <li>On Review Information, click <em>Launch</em>.  It will take several minutes to launch the EC2 instance.</li>
+                <li>Once the application has completed setup, navigate to your environment URL (eg. <code>myfirstapp.us-east-1.elasticbeanstalk.com</code>)</li>
+                <li>AWS Elastic Beanstalk setup is complete!</li>
+              </ol>
+          </ol>
+        </div>
+
+        <!-- Deploying to Elastic Beanstalk Title -->
+        <h2 class="title is-3 has-text-centered">Deploying to AWS using Elastic Beanstalk</h2>
+        <hr class="orangeHR">
+        
+        <!-- Deploying to Elastic Beanstalk Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>We will now deploy our app to AWS using Elastic Beanstalk.  <strong>Please read the following explanation carefully to understand why the following steps are suggested.</strong>  When the MEAN stack application is deployed to a Node.js instance of Amazon EC2, the application is unpackaged, the <code>package.json</code> file is located, and dependencies are installed.  Unlike other <em>PaaS</em> providers, the EC2 instance will not run <code>ng</code> commands despite having Angular installed.  Therefore, we must build the <code>/dist</code> and <code>/dist-server</code> folders on our local machine and then provide these folders as static assets to Elastic Beanstalk for upload.  Of course, we could use the EB CLI, but this would upload more files than necessary.</li>
+            <li>Ensure all links in Angular services are changed from absolute links to relative links (example shown below)</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // book.service.ts
+                getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                  return this.http.get&lt;Book[]&gt;('http://localhost:3000/api/library/book');  // before
+                {{ '}' }}
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // book.service.ts
+                getAllBooks(): Observable&lt;Book[]&gt; {{ '{' }}
+                  return this.http.get&lt;Book[]&gt;('api/library/book');  // after
+                {{ '}' }}
+              </pre>
+            <li>Run <code>yarn run build</code> to generate the <code>dist/</code> and <code>dist-server/</code> folders</li>
+              <pre class="command-body">yarn run build</pre>
+            <li>Make a new folder and copy the following files and folders into it: <code>package.json</code>, <code>server.js</code>, <code>/node_src</code>, <code>/dist</code>, and <code>/dist-server</code></li>
+            <li>Select all 5 items, and create a <code>.zip</code> file using your preferred compression software</li>
+            <li>On the Elastic Beanstalk Dashboard, click <em>Upload and Deploy</em> to upload your <code>.zip</code> file</li>
+            <li>The app will build.  Logs can be retrieved from the <em>Logs</em> section in Elastic Beanstalk.  You have now successfully deployed the app!</li>
+          </ol>
+        </div>
+
+        <!-- MongoDB Atlas and AWS Compatibility Title -->
+        <h2 class="title is-3 has-text-centered">Note about MongoDB Atlas and AWS</h2>
+        <hr class="orangeHR">
+        
+        <!-- MongoDB Atlas and AWS Compatibility Content -->
+        <div class="columns">
+          <div class="column">
+            <div class="content has-text-justified">
+              <p>When deploying this application to AWS, it was noted that MongoDB Atlas was not connecting properly.  After doing some troubleshooting, it is likely that the <em>free tier version</em> of MongoDB Atlas does not connect with AWS due to the odd URI connection string provided.  The paid tier plans in MongoDB Atlas have normal URI connection strings and will likely work; however, this has not been tested.  Another MongoDB Database-as-a-Service, <a href="https://mlab.com/" target="_blank"><strong>mLab</strong></a>, can be used instead.  This service also has a free tier and is a popular choice for developers due to its ease of setup and use.</p>
+            </div>
+          </div>
+          <div class="column">
+            <img src="assets/images/logos/mlab.png" alt="mLab" class="image image-shadow image-border image-center">
+          </div>
+        </div>
+        
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="orange"></app-social-buttons>
+
+  </div>
+</section>

@@ -1,0 +1,90 @@
+<section class="section has-fadein">
+  <div class="container">
+
+    <nav class="level">
+      <div class="level-left">
+        <div class="level-item">
+          <h1 class="title">Books in your Library</h1>
+        </div>
+        <div class="level-item">
+          <a class="button is-primary is-rounded" routerLink="/books/create">
+            <span class="icon is-small"><i class="fas fa-plus"></i></span>
+            <span>Add Book</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Table to display books -->
+    <table class="table is-striped is-hoverable is-fullwidth is-bordered" *ngIf="books?.length > 0; else noBooks">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let book of books">
+          <td><a [routerLink]="['/books/details', book._id]">{{ book.title }}</a></td>
+          <td>{{ book.author }}</td>
+          <td>{{ book.description }}</td>
+          <td>
+            <nav class="level">
+              <div class="level-item btnPadding">
+                <a class="button is-info tooltip" data-tooltip="Edit" [routerLink]="['/books/edit/', book?._id]">
+                  <span class="icon is-small"><i class="far fa-edit"></i></span>
+                </a>
+              </div>
+              <div class="level-item btnPadding">
+                <a class="button is-danger tooltip" data-tooltip="Delete" data-target="confirmDelete" (click)="toggleDelete(book)">
+                  <span class="icon is-small"><i class="far fa-trash-alt"></i></span>
+                </a>
+              </div>
+            </nav>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Display if no books -->
+<ng-template #noBooks>
+  <div class="container has-fadein">
+    <div class="columns is-centered">
+      <h1 class="title is-1 has-text-centered noBooksPadding">
+        <span class="icon"><i class="far fa-question-circle"></i></span><br><span>There are no books to display</span>
+      </h1>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Confirm Delete Modal -->
+<div class="modal" [class.is-active]="deleteSwitch" id="confirmDelete">
+  <div class="modal-background" (click)="toggleDelete(book)"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Confirm Delete</p>
+      <a class="delete" aria-label="close" (click)="toggleDelete(book)"></a>
+    </header>
+    <section class="modal-card-body">
+      <article class="media">
+        <aside class="media-left">
+          <img src="assets/images/confirm.png" width="100">
+        </aside>
+        <div class="media-content is-clipped">
+          <h2 class="subtitle has-text-centered">
+            Are you sure you want to delete<br><br>
+            <strong><em>{{ bookToDelete?.title }}</em></strong>?
+          </h2>
+        </div>
+      </article>
+    </section>
+    <footer class="modal-card-foot">
+      <button class="button is-success" (click)="deleteBook(bookToDelete)">Yes</button>
+      <button class="button" (click)="toggleDelete(book)">No</button>
+    </footer>
+  </div>
+</div>

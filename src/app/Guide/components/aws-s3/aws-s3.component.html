@@ -1,0 +1,235 @@
+<!-- Cloud Storage with Amazon S3 Guide -->
+<section class="section has-fadein">
+  <div class="container">
+    
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Cloud Storage with Amazon S3</h1>
+    <img src="assets/images/guide-headers/aws-s3-header.png" alt="AWS S3" class="image image-shadow image-border image-center">
+    <hr class="orangeHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+        
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><strong>AWS Simple Storage Service (S3)</strong> is object storage built to store and retrieve any amount of data from anywhere with unmatched durability, availability, and scalability.  AWS S3 stores data as objects within resources called buckets.  It is an effective solution for cloud storage with not only Create, Read, Update, and Delete functionality, but also advanced capabilities such as comprehensive security and compliance as well as big data analytics.  You can get started with Amazon S3 using the <a href="https://aws.amazon.com/free/" target="_blank">AWS Free Usage Tier</a> with 5GB of free storage for one year.  This guide explains how cloud storage was integrated into this app allowing for profile picture uploads as well as deleting previous profile picture uploads when the user uploads another photo or chooses to reset the profile picture altogether.</p>
+          <span><strong>Resources:</strong></span>
+          <ul>
+            <li><a href="https://github.com/badunk/multer-s3" target="_blank">Streaming multer storage engine for AWS S3</a> by <em>Duncan Wong</em> (last accessed 3/22/2018)</li>
+            <li><a href="https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/s3-example-photo-album.html" target="_blank">Uploading Photos to Amazon S3 from a Browser</a> by <em>AWS SDK for JavaScript</em> (last accessed 3/22/2018)</li>
+          </ul>
+        </div>
+
+        <!-- Configuring Amazon S3 Title -->
+        <h2 class="title is-3 has-text-centered">Configuring Amazon S3</h2>
+        <hr class="orangeHR">
+
+        <!-- Configuring Amazon S3 Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Create an account on Amazon Web Services (AWS)</li>
+            <li>Set up a user account on Identity and Access Managaement (IAM)</li>
+              <ol>
+                <li>Once in the dashboard, click the Users tab on the left</li>
+                <li>Click <em>Add User</em></li>
+                <li>Type in a username and select <em>Programmatic access</em>.  This is how we will obtain our Access Key ID and Secret Access Key</li>
+                <li>On the next screen, click <em>Attach existing policies directly</em> and select the <em>Amazon S3 Full Access</em> policy.  We will need this in order to both read and write to our cloud storage bucket.</li>
+                <li>Click <em>Create User</em></li>
+                <li>You will be presented with a page showing the new username plus an Access Key ID and a Secret Access Key. <strong>Important</strong>: please save your Secret access key somewhere as once you leave this page, it will no longer be displayed.</li>
+              </ol>
+            <li>Create an S3 Bucket</li>
+              <ol>
+                <li>Once in the dashboard, click <em>Create bucket</em></li>
+                <li>Name your bucket and leave all the default settings</li>
+                <li>After your bucket is created, click on the <em>Permissions</em> tab, and then within that tab, click <em>Bucket Policy</em></li>
+                <li>Head over to the <a href="https://awspolicygen.s3.amazonaws.com/policygen.html">AWS Policy Generator</a> to generate a new policy.  Use the following settings:</li>
+                  <ul>
+                    <li>Policy Type: S3 Bucket Policy</li>
+                    <li>Effect: Allow</li>
+                    <li>Principal: *</li>
+                    <li>AWS Service: *</li>
+                    <li>Actions: GetObject</li>
+                    <li>ARN: arn:aws:s3:::&lt;bucket_name&gt;/&lt;key_name&gt;</li>
+                  </ul>
+                <li>The policy is generated in JSON format.  Copy this policy and place it in the Bucket Policy editor and click <em>Save</em></li>
+                <li>Amazon S3 Bucket setup is complete!  We now have the 3 things we need to integrate Amazon S3 into our app: the <strong>Bucket Name</strong>, the <strong>Access Key ID</strong>, and the <strong>Secret Access Key</strong></li>
+              </ol>
+          </ol>
+        </div>
+
+        <!-- Setting up Amazon S3 on NodeJS Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Amazon S3 on NodeJS</h2>
+        <hr class="orangeHR">
+
+        <!-- Setting up Amazon S3 on NodeJS Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Copy your AWS information into <code>keys.js</code>.  <strong>When building for production, it is highly recommended to put sensitive information such as API keys into environment variables</strong>.  Please check the documentation of your preferred platform provider for instructions on how to do this when deploying your application.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // keys.js
+              module.exports = {{ '{' }}
+                aws: {{ '{' }}
+                  bucketName: process.env.AWSBUCKETNAME || &lt;your-AWS-bucket-name&gt;,
+                  accessKey: process.env.AWSACCESSKEY || &lt;your-AWS-access-key&gt;,
+                  secretKey: process.env.AWSSECRETKEY || &lt;your-AWS-secret-key&gt;
+                {{ '}' }},
+              {{ '}' }};
+            </pre>
+            <li>Set up the AWS environment to upload and delete objects.  For uploads, we will be using the <code>multer</code> and <code>multer-s3</code> storage engines.  For deletes, we will stick with the original <code>aws-sdk</code>.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // auth.js
+              // Require dependencies
+              const aws = require('aws-sdk');
+              const multer = require('multer');
+              const multerS3 = require('multer-s3');
+              const s3 = new aws.S3({{ '{' }} 
+                accessKeyId: keys.aws.accessKey,
+                secretAccessKey: keys.aws.secretKey 
+              {{ '}' }});
+              const fileSize = 0.1 * 1024 * 1024 // 100kb size limit
+
+              // Upload function using multer and multer-S3
+              const upload = multer({{ '{' }}
+                storage: multerS3({{ '{' }}
+                  s3: s3,
+                  bucket: keys.aws.bucketName,
+                  metadata: function (req, file, cb) {{ '{' }}
+                    cb(null, {{ '{' }} fieldName: file.fieldname {{ '}' }});
+                  {{ '}' }},
+                  key: function (req, file, cb) {{ '{' }}
+                    cb(null, Date.now().toString())
+                  {{ '}' }}
+                {{ '}' }}),
+                limits: {{ '{' }} fileSize {{ '}' }}
+              {{ '}' }});
+
+              // Delete profile pic when uploading a new one or pic reset
+              const deleteProfilePic = function (imageKey) {{ '{' }}
+                const params = {{ '{' }}
+                  Bucket: keys.aws.bucketName,
+                  Key: imageKey
+                {{ '}' }};
+                s3.deleteObject(params, function (err, data) {{ '{' }}
+                  if (err) console.log(err);
+                {{ '}' }});
+              {{ '}' }}
+            </pre>
+          </ol>
+
+        </div>
+
+        <!-- Setting up Profile Update Routes on NodeJS Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Profile Update Routes on NodeJS</h2>
+        <hr class="orangeHR">
+
+        <!-- Setting up Profile Update Routes on NodeJS Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>When updating a user's profile, the token's signature is checked and the payload (user Object) is unwrapped and available.  The image file (if used) is then uploaded using multer-s3 if the filesize is within the specified limit.  The database is searched by user ID (<code>user._id</code>.  If the user had previously uploaded a profile pic, it is deleted before the new one is updated.  If the user wants to update the display name or password, it is also passed in using <code>req.body</code> and saved to the database.  The file is accessed with <code>req.file</code>.  Of note, the password will be salted and hashed before being saved.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // auth.js
+                // Update a user's profile
+                .post([checkJWT, upload.single('profile_pic')], (req, res, next) => {{ '{' }}
+                  User.findById(req.decoded.user._id, (err, user) => {{ '{' }}
+                    if (err) return next(err);
+
+                    // Delete previous profile pic from AWS S3, if present
+                    if (user.hasUploadedImage) deleteProfilePic(user.imageKey);
+
+                    // Update displayName, password, and/or image data
+                    if (req.body.displayName) user.displayName = req.body.displayName;
+                    if (req.body.password) user.password = req.body.password;
+                    if (req.file !== undefined) {{ '{' }}
+                      user.imageURL = req.file.location;
+                      user.imageKey = req.file.key;
+                      user.hasUploadedImage = true;
+                    {{ '}' }}
+
+                    // Save updates to database
+                    user.save();
+                    res.json({{ '{' }} success: true, message: 'Profile information saved successfully' {{ '}' }});
+                  {{ '}' }});
+                {{ '}' }});
+              </pre>
+            <li>When resetting a user's profile image, the same workflow is used as above.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // auth.js
+                // Reset a user's profile image
+                router.post('/reset', checkJWT, (req, res, next) => {{ '{' }}
+                    User.findById(req.decoded.user._id, (err, user) => {{ '{' }}
+                      if (err) return next(err);
+
+                      // Delete previous profile pic from AWS S3, if present
+                      if (user.hasUploadedImage) deleteProfilePic(user.imageKey);
+
+                      // Reset image keys to default
+                      user.imageURL = req.body.imageURL;
+                      user.imageKey = '';
+                      user.hasUploadedImage = false;
+
+                      // Save updates to database
+                      user.save();
+                      res.json({{ '{' }} success: true, message: 'Profile information saved successfully' {{ '}' }});
+                  {{ '}' }});
+                {{ '}' }});
+              </pre>
+          </ol>
+
+        </div>
+
+        <!-- Setting up Image Uploads on Angular Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Image Uploads on Angular</h2>
+        <hr class="orangeHR">
+
+        <!-- Setting up Image Uploads on Angular Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>After defining our routes to connect to our MongoDB database and Amazon S3 storage, we can generate a component to hit these routes with the Angular client.</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+                constructor(private userService: UserService) {{ '{' }} {{ '}' }}
+
+                // Retrieve file image from form
+                fileChange(e: any) {{ '{' }}
+                  this.currentUser.profile_pic = e.target.files[0];
+                  this.imageName = this.currentUser.profile_pic.name;
+                {{ '}' }}
+
+                // Edit user's profile
+                editProfile() {{ '{' }}
+
+                  if (this.validate(this.currentUser)) {{ '{' }}
+
+                    // Generate a new form to pass in the the request object for multer compatibility
+                    const form = new FormData();
+                    for (const key in this.currentUser) {{ '{' }}
+                      if (this.currentUser.hasOwnProperty(key)) form.append(key, this.currentUser[key]);
+                    {{ '}' }}
+
+                    // Save updates to the database and profile pic to AWS S3 storage
+                    this.userService.updateProfile(form)
+                      .subscribe((res) => this.userService.redirectToHomePage(), (error) => {{ '{' }}{{ '}' }});
+                  {{ '}' }} else {{ '{' }}
+                    this.errorToggle = true;
+                    return false;
+                  {{ '}' }}
+
+                {{ '}' }}
+
+                // Reset profile picture to default
+                resetImage() {{ '{' }}
+                  this.userService.resetProfilePicture('assets/images/anonymous.png')
+                    .subscribe((res) => this.userService.redirectToHomePage(), (error) => {{ '{' }}{{ '}' }});
+                {{ '}' }}
+            </pre>
+          </ol>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="orange"></app-social-buttons>
+
+  </div>
+</section>

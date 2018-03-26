@@ -1,0 +1,28 @@
+<section class="section has-fadein">
+  <div class="container is-centered">
+    <div class="columns">
+      <div class="column is-half is-offset-one-quarter">
+
+        <!-- Display individual book -->
+        <div class="card">
+          <div class="card-image">
+            <figure class="image is-256x256">
+              <img src="https://source.unsplash.com/1600x900/?book" alt="Placeholder image">
+            </figure>
+          </div>
+          <div class="card-content">            
+              <div class="content">
+                <p class="title is-4">{{ book?.title }}</p>
+                <p class="subtitle is-6">by <em>{{ book?.author }}</em></p><br>
+                {{ book?.description }}
+            </div>
+          </div>
+        </div><br>
+
+        <!-- Back Button -->
+        <app-books-back></app-books-back>
+
+      </div>
+    </div>
+  </div>
+</section>

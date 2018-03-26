@@ -1,0 +1,263 @@
+<!-- Angular Universal Guide -->
+<section class="section has-fadein">
+  <div class="container">
+
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Angular Universal Setup</h1>
+    <img src="assets/images/guide-headers/angular-universal.png" alt="Angular Universal" class="image image-shadow image-border image-center"><br>
+    <hr class="redHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <span><span class="is-size-5"><strong>Angular Universal</strong></span> is a technology that runs an Angular application on the server.  A typical Angular application is downloaded completely before being executed in the browser, which may take some time.  Using server-side rendering, Angular Universal generates and serves those same pages only in response to requests from browsers, significantly improving performance.  There are three main reasons it's beneficial to use a Universal version of an app:</span>
+          <ol>
+            <span class="is-size-5"><li><strong>Improved User Experience</strong></li></span>
+            <span>Displaying the first page quickly can be critical for user engagement.  Users of your app will instantly see a server rendered view using Angular Universal, which greatly improves perceived performance and the overall user experience. It's been reported that the difference of just 200 milliseconds in page load performance has an impact on user behavior.</span>
+            <span class="is-size-5"><li><strong>Search Engine Optimization (SEO)</strong></li></span>
+              <span>Most search engines including Google and Bing use bots to crawl websites to obtain information to index.  The issue with Angular and other JavaScript frameworks is that many search engines expect plain HTML when in fact the page is rendered in Javascript.  Server-side rendering ensures that all search engines get access to the application's content by displaying HTML markup that is easily read by web crawlers.</span>
+            <span class="is-size-5"><li><strong>Social Media Compatibility</strong></li></span>
+            <span>As stated above, Angular Universal can generate a static version of your app that is easily searchable, linkable, and navigable without JavaScript.  It also makes a site preview available since each URL returns a fully-rendered page.  This greatly enhances the ability to share and link content to social media including Facebook, Twitter, and Reddit.</span>
+          </ol>
+          <span><span class="is-size-5"><strong>This guide</strong></span> explains the steps needed to easily integrate Angular Universal into this web application using a NodeJS server.  This is required to prerender each page as the HTML files need to be calculated at runtime.  Unfortunately, this means that a server is required (increased cost compared to static files) and although it's becoming easier, Angular Universal can be confusing to set up.  Hopefully, this guide as well as the resources provided below will give you enough information to confidently set up your own universal Angular app.  The table of contents is shown below:</span>
+          <ul>
+            <li>Setting up Server Side Rendering - Angular Client</li>
+            <li>Setting up Server Side Rendering - NodeJS Server</li>
+            <li>Dealing with Lazy Loading on the Server</li>
+            <li>Accessing Browser Types on the Client</li>
+          </ul>
+          <span><strong>Resources:</strong></span>
+          <ul>
+            <li>
+              <a href="https://malcoded.com/posts/angular-fundamentals-universal-server-side-rendering" target="_blank">Angular Universal and Server Side Rendering (Step by Step)</a> by <em>Lukas Marx</em> (9/22/17)</li>
+            <li>
+              <a href="https://www.ryadel.com/en/angular-5-access-window-document-localstorage-browser-types-angular-universal" target="_blank">Angular 5 – How to access Window, Document and other browser types in Angular Universal</a> by <em>Ryan</em> (11/20/17)
+            </li>
+          </ul>
+
+        </div>
+
+        <!-- Setting up Server Side Rendering - Angular Client Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Server Side Rendering - Angular Client</h2>
+        <hr class="redHR">
+
+        <!-- Setting up Server Side Rendering - Angular Client Content -->
+        <div class="content has-text-justified">
+          <span>Angular CLI has native Universal support starting from v1.6.  We will use the CLI to quickly generate Angular Universal server
+          files and update our existing Angular app.  Some minor changes are then made for our production build.  The following commands should be executed in the app's root directory.</span>
+          <ol>
+            <li>Generate Angular Universal using Angular CLI (v1.6 or greater)</li>
+              <pre class="command-body">ng generate universal universal</pre>
+            <li>Install <code>@angular/platform-server</code></li>
+              <pre class="command-body">yarn add @angular/platform-server</pre>
+            <li>Modify <code>main.server.ts</code> to the following:</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // main.server.ts
+                import {{ '{' }} enableProdMode {{ '}' }} from '@angular/core';
+                export {{ '{' }} AppServerModule {{ '}' }} from './app/app.server.module';
+
+                enableProdMode();
+              </pre>
+            <li>Add <code>/dist_server</code> to <code>.gitignore</code></li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // .gitignore
+                # compiled output
+                /dist
+                /dist-server
+                ...
+              </pre>
+            <li>Client-side setup is complete!  In order to connect the Angular client to the NodeJS server, the app needs to be built into the <code>/dist</code> folder and the "server app," which renders the original app, needs to be built into the <code>/dist-server</code> folder.  The command for this is shown below:</li>
+              <pre class="command-body">ng build --prod && ng build --prod --app universal --output-hashing=none</pre>
+          </ol>
+        </div>
+
+        <!-- Setting up Server Side Rendering - NodeJS Server Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Server Side Rendering - NodeJS Server</h2>
+        <hr class="redHR">
+
+        <!-- Setting up Server Side Rendering - NodeJS Server Content -->
+        <div class="content has-text-justified">
+          <span>The entire NodeJS server is set up in a single file <code>server.js</code>.  The following code is the minimum requirements needed to start up your server.</span>
+          <ol>
+            <li>Install <code>express</code> and <code>@nguniversal/express-engine</code></li>
+              <pre class="command-body">yarn add express @nguniversal/express-engine</pre>
+            <li>Require <code>zone.js</code>.  Zone.js is a library that creates a context around asynchronous functions in order to to make them trackable.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                require('zone.js/dist/zone-node');
+              </pre>
+            <li>Set up the Express framework for NodeJS</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                const express = require('express');
+                const app = express();
+                const port = process.env.PORT || 3000;
+                app.disable('etag').disable('x-powered-by');
+              </pre>
+            <li>Set up the Angular Universal server bundle</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                const ngUniversal = require('@nguniversal/express-engine');
+                const appServer = require('./dist-server/main.bundle');
+              </pre>
+            <li>Install the Angular Universal Express Engine</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // Configuration
+                app.engine('html', ngUniversal.ngExpressEngine({{ '{' }}
+                  bootstrap: appServer.AppServerModuleNgFactory,
+                {{ '}' }}));
+
+                app.set('view engine', 'html');
+                app.set('views', __dirname);
+                app.use(express.static(`${{ '{' }}__dirname{{ '}' }}/dist`, {{ '{' }} index: false {{ '}' }}));
+
+                // Set the default route
+                app.get('/*', (req, res) => res.render('./dist/index', {{ '{' }} req, res {{ '}' }}));
+              </pre>
+            <li>Initalize the server</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                app.listen(port, () => console.log(`Server started on port ${{ '{' }}port{{ '}' }}`));
+              </pre>
+            <li>Server-side setup is complete!  In order to run the server, run the following command.</li>
+              <pre class="command-body">node server.js</pre>
+          </ol>
+        </div>
+
+        <!-- Dealing with Lazy Loading on the Server Title -->
+        <h2 class="title is-3 has-text-centered">Dealing with Lazy Loading on the Server</h2>
+        <hr class="redHR">
+          
+        <!-- Dealing with Lazy Loading on the Server Content -->
+        <div class="content has-text-justified">
+          <span>As Angular Universal runs on a server, there is no need to lazy-load a module.  However, in order to load the routes contained in these modules, a package called <code>@nguniversal/module-map-ngfactory-loader</code> is used to create a map of all lazy-loaded modules.  Once created, routes can be rendered correctly when they are requested.</span>
+          <ol>
+            <li>Install <code>@nguniversal/module-map-ngfactory-loader</code></li>
+              <pre class="command-body">yarn add @nguniversal/module-map-ngfactory-loader</pre>
+            <li>Import <code>ModuleMapLoaderModule</code> into <code>app.server.module.ts</code> in the Angular app</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // app.server.module.ts
+                import {{ '{' }} NgModule {{ '}' }} from '@angular/core';
+                import {{ '{' }} ServerModule {{ '}' }} from '@angular/platform-server';
+                import {{ '{' }} ModuleMapLoaderModule {{ '}' }} from '@nguniversal/module-map-ngfactory-loader';
+                import {{ '{' }} AppModule {{ '}' }} from './app.module';
+                import {{ '{' }} AppComponent {{ '}' }} from './app.component';
+
+                @NgModule({{ '{' }}
+                  imports: [
+                    AppModule,
+                    ServerModule,
+                    ModuleMapLoaderModule
+                  ],
+                  bootstrap: [AppComponent],
+                 {{ '}' }})
+                export class AppServerModule {{ '{' }} {{ '}' }}
+              </pre>
+            <li>Set up the Lazy Module Map in <code>server.js</code> (NodeJS server)</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                const {{ '{' }} provideModuleMap {{ '}' }} = require('@nguniversal/module-map-ngfactory-loader');
+                const {{ '{' }} ServerAppModuleNgFactory, LAZY_MODULE_MAP {{ '}' }} = appServer;
+                const provider = provideModuleMap(LAZY_MODULE_MAP);
+              </pre>
+            <li>Add <code>provider</code> to the Angular Universal Express Engine</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // Configuration
+                app.engine('html', ngUniversal.ngExpressEngine({{ '{' }}
+                  bootstrap: appServer.AppServerModuleNgFactory,
+                  providers: [provider]
+                {{ '}' }}));
+              </pre>
+            <li>The module map loader setup is complete!</li>
+          </ol>
+
+        </div>
+
+        <!-- Accessing Browser Types on the Client Title -->
+        <h2 class="title is-3 has-text-centered">Accessing Browser Types on the Client</h2>
+        <hr class="redHR">
+
+        <!-- Accessing Browser Types on the Client Content -->
+        <div class="content has-text-justified">
+          <span>Browser types such as <code>window</code>, <code>document</code>, <code>navigator</code>, and <code>localStorage</code> cannot be accessed by Angular Universal apps by default as all rendering is done in the server.  However, this shorcoming can be addressed by using context-specific adapters that can be used as factories for the browser types in question.</span>
+          <ol>
+            <li>Define adapters for your specific browser types that need to be accessed</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // app.module.ts
+              // Adapter for document.body
+              export function getBody() {{ '{'}}
+                return (typeof document !== 'undefined') ? document.body : null;
+              {{ '}'}}
+
+              // Adapter for document.documentElement
+              export function getDocumentElement() {{ '{'}}
+                return (typeof document !== 'undefined') ? document.documentElement : null;
+              {{ '}'}}
+            </pre>
+            <li>Use adapters as factories for browser type providers</li>
+            <pre class="prettyprint image-border image-shadow image-center">
+
+              // app.module.ts
+              import {{ '{' }} BrowserModule{{ '}' }} from '@angular/platform-browser';
+              import {{ '{' }} NgModule {{ '}' }} from '@angular/core';
+              import {{ '{' }} AppComponent {{ '}' }} from './app.component';
+
+              @NgModule({{ '{' }}
+                declarations: [
+                  AppComponent
+                ],
+                imports: [
+                  BrowserModule.withServerTransition({{ '{' }} appId: 'serverApp' {{ '}' }}),
+                ],
+                providers: [
+                  {{ '{' }} provide: 'BODY', useFactory: getBody {{ '}' }},
+                  {{ '{' }} provide: 'DOCUMENTELEMENT', useFactory: getDocumentElement {{ '}' }}
+                ],
+                bootstrap: [AppComponent]
+               {{ '}' }})
+              export class AppModule {{ '{' }} {{ '}' }}
+
+              // Adapter for document.body
+              export function getBody() {{ '{'}}
+                return (typeof document !== 'undefined') ? document.body : null;
+              {{ '}'}}
+
+              // Adapter for document.documentElement
+              export function getDocumentElement() {{ '{'}}
+                return (typeof document !== 'undefined') ? document.documentElement : null;
+              {{ '}'}}
+            </pre>
+            <li>Inject the generic object, in this example <code>BODY</code> and <code>DOCUMENTELEMENT</code> and execute browser-specific code only when the platform type is defined as the browser.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // seo.service.ts 
+                import {{ '{' }} Injectable, PLATFORM_ID, Inject {{ '}' }} from '@angular/core';
+                import {{ '{' }} isPlatformBrowser {{ '}' }} from '@angular/common';
+
+                @Injectable()
+                export class SeoService {{ '{' }}
+
+                  constructor(
+                    // Token that identifies the executing platform’s type
+                    @Inject (PLATFORM_ID) private platformId,
+
+                    // Custom providers for document object
+                    @Inject ('BODY') private body,
+                    @Inject ('DOCUMENTELEMENT') private documentElement) {{ '{' }} {{ '}' }}
+
+                  // Scroll to the top of the page
+                  scrollToTop() {{ '{' }}
+                    if (isPlatformBrowser(this.platformId)) {{ '{' }}
+                      this.body.scrollTop = this.documentElement.scrollTop = 0;
+                    {{ '}' }}
+                  {{ '}' }}
+                {{ '}' }}
+              </pre>
+            <li>Using this code, any browser type can now be accessed using Angular Universal!</li>
+          </ol>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="red"></app-social-buttons>
+
+  </div>
+</section>

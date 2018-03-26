@@ -1,0 +1,367 @@
+<!-- Authentication using JWT Guide -->
+<section class="section has-fadein">
+  <div class="container">
+
+    <!-- Introduction Title -->
+    <h1 class="title is-2 has-text-centered">Authentication using JWT</h1>
+    <img src="assets/images/logos/jwt.png" alt="JSON Web Tokens" class="image image-shadow image-border image-center">
+    <hr class="blackHR">
+
+    <div class="columns is-multiline is-mobile">
+      <div class="column is-10 is-offset-1">
+
+        <!-- Introduction Content -->
+        <div class="content has-text-justified">
+          <p><strong>JSON Web Token (JWT)</strong> is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object.  They are very effective as a method for authentication where the user object is self contained within the token, which can be signed and only be accessed through a subsequent verification process.  The token is compact and may be sent through a POST request or an HTTP header.  This allows the application to avoid querying the database multiple times for user information.  This guide will walk you through the process of using JWT for authentication in our application and role it plays on the server and the client.  The table of contents is shown below:</p>
+          <ul>
+            <li>Setting up Authentication on NodeJS</li>
+            <li>Setting up Authentication on Angular</li>
+            <li>Creating Middleware to Verify JWT Signature</li>
+            <li>Getting the User's Profile</li>
+            <li>Creating an Auth Guard</li>
+          </ul>
+          <span><strong>Resources:</strong></span>
+          <ul>
+            <li>
+              <a href="https://jwt.io/introduction/" target="_blank">Introduction to JSON Web Tokens</a> by
+              <em>Auth0</em> (last accessed 3/22/18)
+            </li>
+            <li>
+              <a href="https://www.codementor.io/olatundegaruba/5-steps-to-authenticating-node-js-with-jwt-7ahb5dmyr" target="_blank">5 Steps to Authenticating Node.js with JWT</a> by <em>Olatunde Garuba</em> (4/24/17)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Setting up Authentication on NodeJS Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Authentication on NodeJS</h2>
+        <hr class="blackHR">
+        
+        <!-- Setting up Authentication on NodeJS Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Using Mongoose ODM, create a new User Schema</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // User.js
+                // Require dependencies
+                const mongoose = require('mongoose');
+                const Schema = mongoose.Schema;
+  
+                // User Schema
+                const UserSchema = new Schema({{ '{' }}
+                  email: {{ '{' }} type: String, unique: true, lowercase: true, required: true {{ '}' }},
+                  password: {{ '{' }} type: String, required: true {{ '}' }},
+                  displayName: {{ '{' }} type: String, default: 'New User' {{ '}' }},
+                  created: {{ '{' }} type: Date, default: Date.now {{ '}' }},
+                  lastLogin: {{ '{' }} type: Date, default: Date.now {{ '}' }},
+                  imageURL: {{ '{' }} type: String, default: 'assets/anonymous.png' {{ '}' }},
+                  imageKey: {{ '{' }} type: String, default: '' {{ '}' }},
+                  hasUploadedImage: {{ '{' }} type: Boolean, default: false {{ '}' }}
+                {{ '}' }});
+              </pre>
+            <li>Create middleware to ensure that the user's password gets salted and hashed before being saved to the database</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // User.js
+                // Require dependencies
+                const bcrypt = require('bcrypt-nodejs');
+                const crypto = require('crypto');
+  
+                // Encrypt password before saving it to the database
+                UserSchema.pre('save', function(next) {{ '{' }}
+                  const user = this;
+                  if (!user.isModified('password')) return next();
+                  bcrypt.genSalt(10, (err, salt) => {{ '{' }}
+                    if (err) return next(err);
+                    bcrypt.hash(user.password, salt, null, function (err, hash) {{ '{' }}
+                      if (err) return next(err);
+                      user.password = hash;
+                      next();
+                    {{ '}' }});
+                  {{ '}' }});
+                {{ '}' }});
+              </pre>
+            <li>Create the route to register a new user.  The user is captured in the request object from the client.  A new <code>user</code> is created from the UserSchema and the email and hashed password are both stored into the <code>user</code> object.  The <code>findOne</code> method from Mongoose will query the database to see if the user's email exists and will return an error message if it does.  If the user is unique, the <code>user</code> object is instead saved to the database and a signed token containing the user's information is sent via the response object in JSON format in the key:value pair <code>{{ '{' }} token {{ '}' }}</code> back to the client.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // auth.js
+                // Require dependencies
+                const router = require('express').Router();
+                const jwt = require('jsonwebtoken');
+                const keys = require('../config/keys');
+  
+                // Import Schemas
+                const User = require('../models/user');
+  
+                // Register a user
+                router.post('/register', (req, res, next) => {{ '{' }}
+  
+                  // Identify user
+                  let user = new User();
+                  user.email = req.body.email;
+                  user.password = req.body.password;
+  
+                  // Checks if user exists in the database and saves user only if email address is unique
+                  User.findOne({{ '{' }} email: req.body.email }, (err, existingUser) => {{ '{' }}
+                    if (existingUser) {{ '{' }}
+                      res.json({{ '{' }} success: false, message: 'Email already in use' {{ '}' }});
+                    {{ '}' }} else {{ '{' }}
+                      user.save();
+                      const token = jwt.sign({{ '{' }} user {{ '}' }}, keys.JWT.secret, {{ '{' }} expiresIn: '7d' {{ '}' }});
+                      res.json({{ '{' }} success: true, message: 'Registration successful', token {{ '}' }});
+                    {{ '}' }}
+                  {{ '}' }});
+                {{ '}' }});
+              </pre>
+            <li>Create the route to log in a new user.  The user logs in using an email and a password which is captured in the request object.  The <code>findOne</code> method from Mongoose will check the database if the user exists, and if it does exist, if the password matches the salted and hashed password saved in the database.  The passwords are compared using the <code>comparePassword</code> custom method that is stored in <code>User.js</code>.  If the user exists and the password is correct, the user's login time is saved to the user object and saved to the database.  Like the register route, a signed token containing the user's information is sent via the response object in JSON format in the key:value pair <code>{{ '{' }} token {{ '}' }}</code> back to the client.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // auth.js
+                // Import dependencies
+                const router = require('express').Router();
+                const jwt = require('jsonwebtoken');
+                const keys = require('../config/keys');
+  
+                // Import User Schema
+                const User = require('../models/User');
+  
+                // Login a user
+                router.post('/login', (req, res, next) => {{ '{' }}
+  
+                  // Checks user's information against the database
+                  User.findOne({{ '{' }} email: req.body.email {{ '}' }}, (err, user) => {{ '{' }}
+                    if (err) throw err;
+                    if (!user) {{ '{' }}
+                      res.json({{ '{' }} success: false, message: 'Authenticated failed, User not found' {{ '}' }});
+                    {{ '}' }} else if (user) {{ '{' }}
+                      const validPassword = user.comparePassword(req.body.password);
+                      if (!validPassword) {{ '{' }}
+                        res.json({{ '{' }} success: false, message: 'Authentication failed. Wrong password' {{ '}' }});
+                      {{ '}' }} else {{ '{' }}
+                        user.lastLogin = Date.now();
+                        user.save();
+                        const token = jwt.sign({{ '{' }} user {{ '}' }}, keys.JWT.secret, {{ '{' }} expiresIn: '7d' {{ '}' }});
+                        res.json({{ '{' }} success: true, message: "Login successful", token {{ '}' }});
+                      {{ '}' }}
+                    {{ '}' }}
+                  {{ '}' }});
+                {{ '}' }});
+              </pre>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // User.js
+                UserSchema.methods.comparePassword = function (password) {{ '{' }}
+                  return bcrypt.compareSync(password, this.password);
+                {{ '}' }};
+              </pre>
+            <li>Route setup for JWT authentication on the server is now complete!</li>
+          </ol>
+        </div>
+
+        <!-- Setting up Authentication on Angular Title -->
+        <h2 class="title is-3 has-text-centered">Setting up Authentication on Angular</h2>
+        <hr class="blackHR">
+
+        <!-- Setting up Authentication on Angular Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Create an Angular service that connects to the authentication API that we just set up.  As we are using <strong>Angular Universal</strong>, we need to use <code>isPlatformBrowser</code>, <code>PLATFORM_ID</code>, and <code>Inject</code> to make <code>localStorage</code> compatibile with server-side rendering.  For further information on this topic, please see our <a routerLink="/guides/angular-universal-setup">Angular Universal guide.</a></li>
+            <pre class="prettyprint image-border image-shadow image-center">
+              // user.service.ts
+              import {{ '{' }} Injectable, PLATFORM_ID, Inject {{ '}' }} from '@angular/core';
+              import {{ '{' }} isPlatformBrowser {{ '}' }} from '@angular/common';
+              import {{ '{' }} HttpClient, HttpHeaders {{ '}' }} from '@angular/common/http';
+              import {{ '{' }} Observable {{ '}' }} from 'rxjs/Observable';
+
+              @Injectable()
+              export class UserService {{ '{' }}
+
+                constructor(
+                  private http: HttpClient,
+                  @Inject(PLATFORM_ID) private platformId: any,
+                  @Inject('LOCALSTORAGE') private localStorage: any) {{ '{' }} {{ '}' }}
+
+                // Authorization header containing JWT
+                getHeaders(): HttpHeaders {{ '{' }}
+                  if (isPlatformBrowser(this.platformId)) {{ '{' }}
+                    const token = this.localStorage.getItem('token');
+                    return (token) ? new HttpHeaders().set('Authorization', token) : null;
+                  {{ '}' }}
+                {{ '}' }}
+
+                // Register User
+                registerUser(email: string, password: string): Observable&lt;object&gt; {{ '{' }}
+                  return this.http.post('http://localhost:3000/api/auth/register', 
+                    {{ '{' }} email, password {{ '}' }}, {{ '{' }} headers: this.getHeaders() {{ '}' }});
+                {{ '}' }}
+
+                // Login User
+                loginUser(email: string, password: string): Observable&lt;object&gt; {{ '{' }}
+                  return this.http.post('http://localhost:3000/api/auth/login', 
+                    {{ '{' }} email, password {{ '}' }}, {{ '{' }} headers: this.getHeaders() {{ '}' }});
+                {{ '}' }}
+            </pre>
+            <li>Create register and login components to connect to the API routes.  Both components are very similar so only the <code>register.component.ts</code> is shown.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                  // register.component.ts
+                  constructor(private userService: UserService, @Inject('LOCALSTORAGE') private localStorage: any) {{ '{' }} {{ '}' }}
+
+                  register() {{ '{' }}
+                    if (this.validate(this.user)) {{ '{' }}
+                      this.userService.registerUser(this.user.email, this.user.password)
+
+                        // If email is unique, token gets stored in localStorage
+                        .mergeMap((data: any) => {{ '{' }}
+                          if (data.success) {{ '{' }}
+                            this.localStorage.setItem('token', data.token);
+                            return this.userService.getUser();
+                          {{ '}' }} else {{ '{' }}
+                            this.errorMessage = data.message;
+                            this.errorToggle = true;
+                            this.user = {{ '{' }} email: this.user.email, password: '', confirmPassword: '' {{ '}' }};
+                            return this.userService.getUser();
+                          {{ '}' }}
+                        {{ '}' }}).subscribe((res) => this.userService.redirectToHomePage(), (error) => {{ '{' }}{{ '}' }});
+
+                    {{ '}' }} else {{ '{' }}
+                      this.errorToggle = true;
+                      return false;
+                    {{ '}' }}
+                  {{ '}' }}
+              </pre>
+            <li>Create a logout function</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // hero-navbar.component.ts
+                constructor(private router: Router, @Inject('LOCALSTORAGE') private localStorage: any) {{ '{ ' }} {{ '}' }}
+
+                // Logout
+                logout() {{ '{ ' }}
+                  this.user = null;
+                  this.localStorage.removeItem('token');
+                  this.router.navigate(['/']);
+                {{ '}' }}
+              </pre>
+            <li>Logic to access the authentication API from the client is now complete!</li>
+          </ol>
+        </div>
+
+        <!-- Creating Middleware to Verify JWT Signature Title -->
+        <h2 class="title is-3 has-text-centered">Creating Middleware to Verify JWT Signature</h2>
+        <hr class="blackHR">
+
+        <!-- Creating Middleware to Verify JWT Signature Content -->
+        <div class="content has-text-justified">
+          <span>The purpose of this middleware (NodeJS) is to take the token from the authorization header of our POST request and veriy the token signatures.  This allows certain custom routes to be blocked server-side if the user is not logged in.  Once the token is verified, we will have access to the user data stored on that object.</span>
+          <pre class="prettyprint image-border image-shadow image-center">
+            // check-jwt.js
+            const jwt = require('jsonwebtoken');
+            const keys = require('../config/keys');
+
+            module.exports = function(req, res, next) {{ '{' }}
+
+              // Get token from the authorization header
+              let token = req.headers.authorization;
+
+              // Check for existing JWT
+              if (token) {{ '{' }}
+                jwt.verify(token, keys.JWT.secret, function(err, decoded) {{ '{' }}
+                  if (err) {{ '{' }}
+                    res.json({{ '{' }} success: false, message: 'Failed to authenticate JWT' {{ '}' }});
+                  {{ '}' }} else {{ '{' }}
+                    req.decoded = decoded;
+                    next();
+                  {{ '}' }}
+                {{ '}' }});
+              {{ '}' }} else {{ '{' }}
+                res.status(403).json({{ '{' }} success: false, message: 'No JWT provided' {{ '}' }});
+              {{ '}' }}
+              
+            {{ '}' }}
+          </pre>
+        </div>
+
+        <!-- Getting the User's Profile Title -->
+        <h2 class="title is-3 has-text-centered">Getting the User's Profile</h2>
+        <hr class="blackHR">
+
+        <!-- Getting the User's Profile Content -->
+        <div class="content has-text-justified">
+          <ol>
+            <li>Create a GET route for users to get information saved on the User object</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // auth.js
+                router.route('/profile')
+                
+                // Get a user's profile
+                .get(checkJWT, (req, res, next) => {{ '{' }}
+                  User.findById(req.decoded.user._id, (err, user) => {{ '{' }}
+                    let filteredUser = {{ '{' }}
+                      email: user.email,
+                      displayName: user.displayName,
+                      imageURL: user.imageURL,
+                      created: user.created,
+                      lastLogin: user.lastLogin
+                    {{ '}' }}
+                    res.json({{ '{' }} success: true, message: 'User profile retrieved', user: filteredUser {{ '}' }});
+                  {{ '}' }});
+                {{ '}' }})
+              </pre>
+            <li>Use the <code>user.service.ts</code> file to get the user's profile by sending the JWT to the back end through an HTTP Header file.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                // user.service.ts
+  
+                // Authorization header containing JWT
+                getHeaders(): HttpHeaders {{ '{' }}
+                  if (isPlatformBrowser(this.platformId)) {{ '{' }}
+                    const token = this.localStorage.getItem('token');
+                    return (token) ? new HttpHeaders().set('Authorization', token) : null;
+                  {{ '}' }}
+                {{ '}' }}
+  
+                // Get User Profile
+                getUser(): Observable &lt;object&gt; {{ '{' }}
+                  return this.http.get('http://localhost:3000/api/auth/profile', {{ '{' }} headers: this.getHeaders() {{ '}' }});
+                {{ '}' }}
+              </pre>
+            <li>Call the <code>getUser()</code> function to integrate the user's data into your application where needed.  In this example, the function is called in <code>hero-navbar.component.ts</code> during the <code>ngOnInit()</code> lifecycle hook.</li>
+              <pre class="prettyprint image-border image-shadow image-center">
+                  // hero-navbar.component.ts
+                  constructor(
+                    private userService: UserService,
+                    @Inject(PLATFORM_ID) private platformId,
+                    @Inject('LOCALSTORAGE') private localStorage: any) {{ '{' }} {{ '}' }}
+
+                  ngOnInit() {{ '{' }}
+                    // Get the user profile
+                    if (isPlatformBrowser(this.platformId) && this.localStorage.getItem('token')) {{ '{' }}
+                      this.userService.getUser().subscribe((data: any) => this.user = data.user);
+                    {{ '}' }}
+                  {{ '}' }}
+              </pre>
+          </ol>
+        </div>
+
+        <!-- Creating an Auth Guard Title -->
+        <h2 class="title is-3 has-text-centered">Creating an Auth Guard</h2>
+        <hr class="blackHR">
+
+        <!-- Creating an Auth Guard Content -->
+        <div class="content has-text-justified">
+          <span>The auth guard (Angular) is created to secure routes when a user is not logged in.  In the below example, the <code>/users/edit-profile</code> route can only be accessed if the user possesses a token in localStorage.  This is an effective way to protect your routes on the client side.</span>
+          <pre class="prettyprint image-border image-shadow image-center">
+            // auth.guard.ts
+            constructor(private router: Router, @Inject('LOCALSTORAGE') private localStorage: any) {{ '{' }} {{ '}' }}
+  
+            canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {{ '{' }}
+              if (this.localStorage.getItem('token')) {{ '{' }}
+                return (state.url.startsWith('/users/edit-profile')) ? true : (this.router.navigate(['/']), false);
+              {{ '}' }} else {{ '{' }}
+                return (state.url.startsWith('/users/edit-profile')) ? (this.router.navigate(['/']), false) : true;
+              {{ '}' }}
+            {{ '}' }}
+          </pre>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Social Media Share Buttons -->
+    <app-social-buttons color="black"></app-social-buttons>
+
+  </div>
+</section>
