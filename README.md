@@ -9,7 +9,7 @@
     <a href="https://www.meankit.io" target="_blank">MEANkit.io</a>
 </p>
 
-### Last Update: 3/21/2018
+### Last Update: 3/26/2018
 The MEAN Stack Full Starter Template is one of the best resources for your next web development project!  MEAN is a full-stack development toolkit using the Javascript-based technologies MongoDB, Express, Angular, and Node.js.  Many of the necessary features needed for today's modern web apps are directly built-in for immediate use, including **authentication with JWT**, cloud database service with **MongoDB Atlas**, cloud storage with **Amazon S3**, integration with the **Stripe API**, and server-side rendering with **Angular Universal** for SEO and social media compatibility.
 
 ## Versions
