@@ -5,7 +5,7 @@
 # MEAN Stack Full Starter Template
 
 <p align="center">
-    <img width="500" height="308" src="./src/assets/images/homepage.png"><br>
+    <img width="500" height="284" src="./src/assets/images/homepage.png"><br>
     <a href="https://www.meankit.io" target="_blank">MEANkit.io</a>
 </p>
 
