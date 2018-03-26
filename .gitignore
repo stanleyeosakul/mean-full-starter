@@ -46,3 +46,5 @@ Thumbs.db
 keys_dev.js
 keys_prod.js
 environment_dev.ts
+
+node_src
