@@ -13,16 +13,16 @@ export class LibraryRouter {
   }
 
   private routes() {
-    this.router.get('/', this.bookController.getIndex);
+    this.router.get('/', this.bookController.getIndex.bind(this.bookController));
     this.router
       .route('/book')
-      .get(this.bookController.getAll)
-      .post(this.bookController.createFromBody);
+      .get(this.bookController.getAll.bind(this.bookController))
+      .post(this.bookController.createFromBody.bind(this.bookController));
 
     this.router
       .route('/book/:id')
-      .get(this.bookController.getById)
-      .put(this.bookController.updateFromBody)
-      .delete(this.bookController.delete);
+      .get(this.bookController.getById.bind(this.bookController))
+      .put(this.bookController.updateFromBody.bind(this.bookController))
+      .delete(this.bookController.delete.bind(this.bookController));
   }
 }

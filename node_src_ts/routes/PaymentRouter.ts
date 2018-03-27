@@ -12,6 +12,6 @@ export class PaymentRouter {
   }
 
   private routes() {
-    this.router.post('/charge', this.stripeController.charge);
+    this.router.post('/charge', this.stripeController.charge.bind(this.stripeController));
   }
 }
