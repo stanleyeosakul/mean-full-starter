@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { SeoService } from '../../../Shared/services/seo.service';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
+import 'rxjs/add/operator/mergeMap';
 
 @Component({
   selector: 'app-register',
