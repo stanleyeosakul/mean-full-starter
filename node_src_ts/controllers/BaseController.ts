@@ -71,7 +71,7 @@ export class BaseController<T extends Document> {
   }
 
   async createFromBody(req: Request, res: Response): Promise<Response> {
-    const newResource: T = new Model(req.body);
+    const newResource: T = await this.model.create(req.body);
     const result: T = await this._repository.create(newResource);
 
     if (result instanceof MongoError) {
