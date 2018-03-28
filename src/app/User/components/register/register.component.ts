@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { SeoService } from '../../../Shared/services/seo.service';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
+import 'rxjs/add/operator/mergeMap';
 
 @Component({
   selector: 'app-register',
@@ -74,7 +75,7 @@ export class RegisterComponent implements OnInit {
         // If email is unique, token gets stored in localStorage
         .mergeMap((data: any) => {
           if (data.success) {
-            this.localStorage.setItem('token', data.token);
+            this.localStorage.setItem('token', `Bearer ${data.token}`);
             return this.userService.getUser();
           } else {
             this.errorMessage = data.message;

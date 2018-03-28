@@ -44,7 +44,7 @@ export class BooksComponent implements OnInit {
     // Get all books
     if (isPlatformBrowser(this.platformId)) {
       this.bookService.getAllBooks()
-        .subscribe((data: Book[]) => this.books = data);
+        .subscribe((data: any) => this.books = data.books);
     }
 
   }
@@ -59,7 +59,7 @@ export class BooksComponent implements OnInit {
   deleteBook(book: Book) {
     this.bookService.deleteBook(book._id)
       .mergeMap((res) => this.bookService.getAllBooks())
-      .subscribe((data: Book[]) => this.books = data);
+      .subscribe((data: any) => this.books = data.books);
     this.deleteSwitch = !this.deleteSwitch;
   }
 
