@@ -1,8 +1,8 @@
-import { Response, Request } from 'express';
-import { MongoError } from 'mongodb';
-import { Document, Model } from 'mongoose';
-import { IBaseRepository } from '../repositories/IBaseRepository';
-import { BaseRepository } from '../repositories/BaseRepository';
+import {Request, Response} from 'express';
+import {MongoError} from 'mongodb';
+import {Document, Model} from 'mongoose';
+import {IBaseRepository} from '../repositories/IBaseRepository';
+import {BaseRepository} from '../repositories/BaseRepository';
 
 export class BaseController<T extends Document> {
   private readonly _repository: IBaseRepository<T>;
@@ -57,7 +57,7 @@ export class BaseController<T extends Document> {
       return BaseController.resolveErrorResponse(res, 500, null, result);
     }
 
-    return BaseController.resolveResponse(res, null, { books: result });
+    return BaseController.resolveResponse(res, null, {books: result});
   }
 
   async getById(req: Request, res: Response): Promise<Response> {
@@ -67,7 +67,7 @@ export class BaseController<T extends Document> {
       return BaseController.resolveErrorResponse(res, 500, null, result);
     }
 
-    return BaseController.resolveResponse(res, null, { book: result });
+    return BaseController.resolveResponse(res, null, {book: result});
   }
 
   async createFromBody(req: Request, res: Response): Promise<Response> {
@@ -78,18 +78,22 @@ export class BaseController<T extends Document> {
       return BaseController.resolveErrorResponse(res, 500, null, result);
     }
 
-    return BaseController.resolveResponse(res, null, { book: result });
+    return BaseController.resolveResponse(res, null, {book: result});
   }
 
   async updateFromBody(req: Request, res: Response): Promise<Response> {
-    const updatedResource: T = new Model(req.body);
-    const result: T = await this._repository.update(req.params.id, updatedResource);
+    const existed: T = await this._repository.getOne(req.body._id);
+    const updated: T = {
+      _id: existed._id,
+      ...existed
+    };
+    const result: T = await this._repository.update(req.params.id, updated);
 
     if (result instanceof MongoError) {
       return BaseController.resolveErrorResponse(res, 500, null, result);
     }
 
-    return BaseController.resolveResponse(res, null, { book: result });
+    return BaseController.resolveResponse(res, null, {book: result});
   }
 
   async delete(req: Request, res: Response): Promise<Response> {
@@ -99,6 +103,6 @@ export class BaseController<T extends Document> {
       return BaseController.resolveErrorResponse(res, 500, null, result);
     }
 
-    return BaseController.resolveResponse(res, null, { book: result });
+    return BaseController.resolveResponse(res, null, {book: result});
   }
 }

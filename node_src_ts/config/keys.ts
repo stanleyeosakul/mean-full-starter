@@ -6,6 +6,7 @@ export const coreConfig = {
   },
   mongoDB: {
     URI: 'mongodb://QCVkHHqteHHhgnYE:L6nckACM08W0N4g9@ds035965.mlab.com:35965/meankit-dev' // mLab Key
+    // URI: 'mongodb://127.0.0.1:27017/meankit-dev'
   },
   JWT: {
     secret: 'ZX224JutQ3HVuXiKkGAE'

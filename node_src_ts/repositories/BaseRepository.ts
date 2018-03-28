@@ -1,5 +1,5 @@
-import { Document, Model } from 'mongoose';
-import { IBaseRepository } from './IBaseRepository';
+import {Document, Model} from 'mongoose';
+import {IBaseRepository} from './IBaseRepository';
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T> {
   private _model: Model<T>;
@@ -25,16 +25,20 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T> {
   }
 
   async getByIds(ids: string[]): Promise<T[]> {
-    return await this._model.find({ _id: { $in: ids } }).exec();
+    return await this._model.find({_id: {$in: ids}}).exec();
   }
 
-  async getOne(value: any, queryBy: string): Promise<T> {
+  async getOne(value: any, queryBy: string = '_id'): Promise<T> {
+    if (queryBy === '_id') {
+      return await this._model.findById(value).exec();
+    }
+
     const query = {};
     query[queryBy] = value;
     return await this._model.findOne(query).exec();
   }
 
   async update(id: string, updatedResource: T): Promise<T> {
-    return await this._model.findByIdAndUpdate(id, updatedResource, { new: true }).exec();
+    return await this._model.findByIdAndUpdate(id, updatedResource, {new: true}).exec();
   }
 }

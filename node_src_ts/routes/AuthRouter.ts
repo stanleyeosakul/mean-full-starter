@@ -40,7 +40,7 @@ export class AuthRouter {
     this.router
       .use(authenticate('jwt', { session: false }))
       .route('/profile')
-      .get(this.userController.getProfile)
+      .get(this.userController.getProfile.bind(this.userController))
       .post(this.upload.single('profile_pic'), this.userController.uploadProfile.bind(this.userController));
     this.router.post('/reset', authenticate('jwt', { session: false }), this.userController.resetProfilePic.bind(this.userController));
   }

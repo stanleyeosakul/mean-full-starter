@@ -75,7 +75,7 @@ export class RegisterComponent implements OnInit {
         // If email is unique, token gets stored in localStorage
         .mergeMap((data: any) => {
           if (data.success) {
-            this.localStorage.setItem('token', data.token);
+            this.localStorage.setItem('token', `Bearer ${data.token}`);
             return this.userService.getUser();
           } else {
             this.errorMessage = data.message;
