@@ -16,6 +16,7 @@ import { authenticateUser } from './middleware/Passport';
 import { AuthRouter } from './routes/AuthRouter';
 import { LibraryRouter } from './routes/LibraryRouter';
 import { PaymentRouter } from './routes/PaymentRouter';
+
 const { AppServerModuleNgFactory, LAZY_MODULE_MAP } = require('../dist-server/main.bundle');
 
 class App {

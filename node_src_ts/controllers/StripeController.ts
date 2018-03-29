@@ -1,6 +1,6 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import * as Stripe from 'stripe';
-import {coreConfig} from '../config/keys';
+import { coreConfig } from '../config/keys';
 
 export class StripeController {
   private readonly stripeInstance: Stripe;
@@ -10,7 +10,7 @@ export class StripeController {
   }
 
   async charge(req: Request, res: Response): Promise<Response> {
-    const {stripeToken} = req.body;
+    const { stripeToken } = req.body;
 
     // Multiply charge by 100 (Stripe thinks a value of 1 is equal to $0.01)
     const chargeAmount = Math.round(req.body.amount * 100);
