@@ -1,5 +1,5 @@
 import { PassportStatic } from 'passport';
-import { StrategyOptions, ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
+import { ExtractJwt, Strategy, StrategyOptions, VerifiedCallback } from 'passport-jwt';
 import { coreConfig } from '../config/keys';
 import { User, UserModel } from '../models/User';
 import { IUserRepository } from '../repositories/IUserRepository';

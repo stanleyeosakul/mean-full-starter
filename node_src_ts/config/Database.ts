@@ -7,7 +7,7 @@ export class Database {
   public mongooseConnection: Connection;
 
   constructor() {
-    (mongoose as Mongoose).Promise = global.Promise;
+    (<Mongoose>mongoose).Promise = global.Promise;
   }
 
   public connectDatabase() {

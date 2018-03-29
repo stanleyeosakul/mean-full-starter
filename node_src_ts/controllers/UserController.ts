@@ -1,27 +1,25 @@
 import { BaseController } from './BaseController';
 import { IUserRepository } from '../repositories/IUserRepository';
 import { UserRepository } from '../repositories/UserRepository';
-import { UserModel, User } from '../models/User';
+import { User, UserModel } from '../models/User';
 import { Request, Response } from 'express';
 import { MongoError } from 'mongodb';
 import { sign } from 'jsonwebtoken';
 import { compare } from 'bcryptjs';
 import { Model } from 'mongoose';
-
 /**
  * AWS
  */
-import * as aws from 'aws-sdk';
-import { S3, AWSError } from 'aws-sdk';
+import { AWSError, S3 } from 'aws-sdk';
 import { coreConfig } from '../config/keys';
-import { DeleteObjectRequest, DeleteObjectOutput } from 'aws-sdk/clients/s3';
+import { DeleteObjectOutput, DeleteObjectRequest } from 'aws-sdk/clients/s3';
 
 export class UserController extends BaseController<User> {
   private readonly _userRepository: IUserRepository;
   readonly s3: S3;
 
   constructor(model: Model<User>) {
-    super(model);
+    super(model, 'user');
     this._userRepository = new UserRepository(model);
     this.s3 = new S3({
       accessKeyId: coreConfig.aws.accessKey,
@@ -95,7 +93,7 @@ export class UserController extends BaseController<User> {
   }
 
   async getProfile(req: Request, res: Response): Promise<Response> {
-    const currentUser: User = req.user as User;
+    const currentUser: User = req['user'] as User;
 
     return UserController.resolveResponse(res, 'Profile retrieved successfully', {
       user: {
@@ -109,9 +107,9 @@ export class UserController extends BaseController<User> {
   }
 
   async uploadProfile(req: Request, res: Response): Promise<Response> {
-    const currentUser: User = await this._userRepository.getById((req.user as User)._id);
+    const currentUser: User = await this._userRepository.getById((req['user'] as User)._id);
     const { displayName, password } = req.body;
-    const file = req.file as S3File;
+    const file = req['file'] as S3File;
 
     if (currentUser instanceof MongoError) {
       return UserController.resolveErrorResponse(res, 500, null, currentUser);
@@ -140,7 +138,7 @@ export class UserController extends BaseController<User> {
   }
 
   async resetProfilePic(req: Request, res: Response): Promise<Response> {
-    const currentUser: User = await this._userRepository.getById((req.user as User)._id);
+    const currentUser: User = await this._userRepository.getById((req['user'] as User)._id);
 
     if (currentUser instanceof MongoError) {
       return UserController.resolveErrorResponse(res, 500, null, currentUser);

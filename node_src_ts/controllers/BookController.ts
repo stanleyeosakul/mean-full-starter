@@ -9,7 +9,7 @@ export class BookController extends BaseController<Book> {
   private readonly _bookRepository: IBookRepository;
 
   constructor(model: Model<Book>) {
-    super(model);
+    super(model, 'book');
     this._bookRepository = new BookRepository(model);
   }
 
