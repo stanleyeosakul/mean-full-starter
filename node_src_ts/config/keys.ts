@@ -1,4 +1,4 @@
-module.exports = {
+export const coreConfig = {
   aws: {
     bucketName: '<your-aws-bucket-name-goes-here>',
     accessKey: '<your-aws-access-key-goes-here>',

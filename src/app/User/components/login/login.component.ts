@@ -1,7 +1,8 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { SeoService } from '../../../Shared/services/seo.service';
 import { UserService } from '../../services/user.service';
 import { User } from '../../models/User';
+import 'rxjs/add/operator/mergeMap';
 
 @Component({
   selector: 'app-login',
@@ -9,7 +10,6 @@ import { User } from '../../models/User';
   styles: []
 })
 export class LoginComponent implements OnInit {
-
   // Initialize variables
   user: User = {
     email: '',
@@ -18,19 +18,11 @@ export class LoginComponent implements OnInit {
   errorToggle: boolean;
   errorMessage: string;
 
-  constructor(
-    private seo: SeoService,
-    private userService: UserService,
-    @Inject('LOCALSTORAGE') private localStorage: any) { }
+  constructor(private seo: SeoService, private userService: UserService, @Inject('LOCALSTORAGE') private localStorage: any) {}
 
   ngOnInit() {
     // Update meta tags
-    this.seo.setMetaTags(
-      'MEANkit.io | Login',
-      'Login to MEANkit.io',
-      'article',
-      'https://www.meankit.io/users/login'
-    );
+    this.seo.setMetaTags('MEANkit.io | Login', 'Login to MEANkit.io', 'article', 'https://www.meankit.io/users/login');
   }
 
   // Validate form
@@ -54,23 +46,23 @@ export class LoginComponent implements OnInit {
   // User login
   login() {
     if (this.validate(this.user)) {
-      this.userService.loginUser(this.user.email, this.user.password)
+      this.userService
+        .loginUser(this.user.email, this.user.password)
 
         // If the username/password combination is correct, store token in localStorage
         .mergeMap((data: any) => {
           if (data.success) {
-            this.localStorage.setItem('token', data.token);
+            this.localStorage.setItem('token', `Bearer ${data.token}`);
             return this.userService.getUser();
           } else {
             this.errorMessage = data.message;
             this.errorToggle = true;
             return this.userService.getUser();
           }
-        }).subscribe((res) => this.userService.redirectToHomePage(), (error) => {});
-
+        })
+        .subscribe(res => this.userService.redirectToHomePage(), error => {});
     } else {
       this.errorToggle = true;
     }
   }
-
 }

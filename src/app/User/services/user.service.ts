@@ -26,7 +26,7 @@ export class UserService {
 
   // Redirect to Home Page
   redirectToHomePage(): void {
-    this.windowLocation.href = 'http://localhost:4200/';
+    this.windowLocation.href = 'http://localhost:3000/';
   }
 
   // Authorization header containing JWT

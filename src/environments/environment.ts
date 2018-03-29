@@ -7,3 +7,4 @@ export const environment = {
   production: false,
   stripeKey: '<your-stripe-publishable-key-goes-here>'
 };
+

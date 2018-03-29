@@ -39,7 +39,7 @@ export class BookEditComponent implements OnInit {
     // Get book details
     if (isPlatformBrowser(this.platformId)) {
       this.bookService.getBook(id)
-        .subscribe((data: Book) => this.book = data);
+        .subscribe((data: any) => this.book = data.book);
     }
   }
 
